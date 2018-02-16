@@ -45,6 +45,8 @@ public class HelloServlet extends HttpServlet {
 
         if (emailsData.token.equals(token)) {
 //            EmailSender.sendEmail(emailsData.emails);
+            resp.getWriter().append(new Gson().toJson(emailsData));
+            resp.setStatus(200);
         } else {
             resp.getWriter().append("{'message' : 'bad request', 'reason' : 'invalid_token'}");
             resp.setStatus(403);
@@ -53,11 +55,11 @@ public class HelloServlet extends HttpServlet {
     }
 
     class Emails {
-        List<EmailJSON> emails;
+        RawData rawData;
         String token;
     }
 
-    class EmailJSON {
+    class RawData {
         public String to;
         public String subject;
         public String html;
