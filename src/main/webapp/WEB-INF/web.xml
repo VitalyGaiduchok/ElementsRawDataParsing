@@ -8,12 +8,12 @@
 
   <servlet>
     <servlet-name>myservlet</servlet-name>
-    <servlet-class>com.servlets.Servlet</servlet-class>
+    <servlet-class>Servlet.HelloServlet</servlet-class>
   </servlet>
 
   <servlet-mapping>
     <servlet-name>myservlet</servlet-name>
-    <url-pattern>/email/send</url-pattern>
+    <url-pattern>/rawData</url-pattern>
   </servlet-mapping>
 
 </web-app>
