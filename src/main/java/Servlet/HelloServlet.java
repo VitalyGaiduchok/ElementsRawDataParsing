@@ -48,16 +48,16 @@ public class HelloServlet extends HttpServlet {
         resp.getWriter().append("Response : " + bodyStr);
         ResponseRawData emailsData = new Gson().fromJson(bodyStr, ResponseRawData.class);
         
-        String disterString = "{![Account].AccountNumber + '  ' + [Account].Name} Account.Name Account.notName {![Account].JigsawCompanyId2} + "
-                + "{![Account].Name1} + [Account.Name] + Account. AccountNumber + [Account].Name  {![Account].Name}sd {zxc} [Account]. namz + Account.names + "
-                + "{![Account].Name3} {![Account].Name + \'1\'} [Account].Name $User.FirstName \'$User.FirstName\' z$User.FirstName $User.SSS 1{![Account].Name}zxccxz 2"
-                + "{![Account].Name} {![Account].Name}3 {! [Account].Name} 4 {!}{![Account].Name} {![}{![Account].Name} {![{![Account].Name} {![]}{![Account].Name} "
-                + "{![Account]}{![Account].Name}{![Account]}{![Account].Name}{![Account]}{![Account].Name} {![Account].Name}{!myVariable_current} {![Account]}{![Account].Name}"
-                + "{!myVariable_current} {!$User.FirstName}{![Account]}{![Account]}{![Account]} {!$User.FirstName}{![Account]}{![Account]} }{!{![Account].Name} "
-                + "{![Account].Fields['Name']} {![Account].Fields['Name', 'AccountNumber']} {![A__c].Name} {![Account].Name} {! myVariable_current.Name} {!myVariable_current.Name } "
-                + "{!User.FirstName} {![User].FirstName__c} [User.FirstName] [User].FirstName {!$User.FirstName} {!$[User].FirstName} \n {![User].FirstName}";
-      
-        String expression = disterString + "{!SecondValid_2.Name} .{!NotValid_2,Name }{!NotValid_2,Name {!SecondValid_7.Name} }{! NotValid_1.Name} {!NotValid_3.name__r.__c} {![FirstValid__c].Name__r.createdBy.Id}{!{!{!Valid_4.Name__c}}{!SecondValid_2.Name}{![ThirdValid].createdBy.Name}";
+//        String disterString = "{![Account].AccountNumber + '  ' + [Account].Name} Account.Name Account.notName {![Account].JigsawCompanyId2} + "
+//                + "{![Account].Name1} + [Account.Name] + Account. AccountNumber + [Account].Name  {![Account].Name}sd {zxc} [Account]. namz + Account.names + "
+//                + "{![Account].Name3} {![Account].Name + \'1\'} [Account].Name $User.FirstName \'$User.FirstName\' z$User.FirstName $User.SSS 1{![Account].Name}zxccxz 2"
+//                + "{![Account].Name} {![Account].Name}3 {! [Account].Name} 4 {!}{![Account].Name} {![}{![Account].Name} {![{![Account].Name} {![]}{![Account].Name} "
+//                + "{![Account]}{![Account].Name}{![Account]}{![Account].Name}{![Account]}{![Account].Name} {![Account].Name}{!myVariable_current} {![Account]}{![Account].Name}"
+//                + "{!myVariable_current} {!$User.FirstName}{![Account]}{![Account]}{![Account]} {!$User.FirstName}{![Account]}{![Account]} }{!{![Account].Name} "
+//                + "{![Account].Fields['Name']} {![Account].Fields['Name', 'AccountNumber']} {![A__c].Name} {![Account].Name} {! myVariable_current.Name} {!myVariable_current.Name } "
+//                + "{!User.FirstName} {![User].FirstName__c} [User.FirstName] [User].FirstName {!$User.FirstName} {!$[User].FirstName} \n {![User].FirstName}";
+//      
+        String expression ="{!SecondValid_2.Name} .{!NotValid_2,Name }{!NotValid_2,Name {!SecondValid_7.Name} }{! NotValid_1.Name} {!NotValid_3.name__r.__c} {![FirstValid__c].Name__r.createdBy.Id}{!{!{!Valid_4.Name__c}}{!SecondValid_2.Name}{![ThirdValid].createdBy.Name}";
         expression = "{!SObject.Name} + .{![Account__c].Name}...{![Account2].Name}.. ...{!SObject} {![asddsa__c]} ..{!dsaasd} {!dsaasd2__c}";
         
         HashMap<String, String> vars = new HashMap<>();
