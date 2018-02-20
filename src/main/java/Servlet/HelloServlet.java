@@ -16,6 +16,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import launch.Main;
+import org.apache.commons.lang3.StringUtils;
 
 @WebServlet(
         name = "MyServlet",
@@ -45,9 +46,16 @@ public class HelloServlet extends HttpServlet {
         System.out.println(bodyStr);
 
         resp.getWriter().append("Response : " + bodyStr);
-        ResponseRawData emailsData = new Gson().fromJson(bodyStr, ResponseRawData.class);
+        ResponseRawData rawD = new Gson().fromJson(bodyStr, ResponseRawData.class);
         
-        resp.getWriter().append("Response : " + emailsData.rawData.Metadata.toString());
+        resp.getWriter().append("\nResponse : " + rawD.rawData.Metadata.toString());
+        Map<String, String> vars = new HashMap<String, String>();
+        for (Variable var : rawD.rawData.Metadata.variables) {
+            if (StringUtils.isBlank(var.objectType)) { continue; }
+            vars.put(var.name, var.objectType);
+        }
+        resp.getWriter().append("\nResponse : " + vars.toString());
+
 //        String disterString = "{![Account].AccountNumber + '  ' + [Account].Name} Account.Name Account.notName {![Account].JigsawCompanyId2} + "
 //                + "{![Account].Name1} + [Account.Name] + Account. AccountNumber + [Account].Name  {![Account].Name}sd {zxc} [Account]. namz + Account.names + "
 //                + "{![Account].Name3} {![Account].Name + \'1\'} [Account].Name $User.FirstName \'$User.FirstName\' z$User.FirstName $User.SSS 1{![Account].Name}zxccxz 2"
@@ -60,14 +68,14 @@ public class HelloServlet extends HttpServlet {
 //        String expression ="{!SecondValid_2.Name} .{!NotValid_2,Name }{!NotValid_2,Name {!SecondValid_7.Name} }{! NotValid_1.Name} {!NotValid_3.name__r.__c} {![FirstValid__c].Name__r.createdBy.Id}{!{!{!Valid_4.Name__c}}{!SecondValid_2.Name}{![ThirdValid].createdBy.Name}";
 //        expression = "{!SObject.Name} + .{![Account__c].Name}...{![Account2].Name}.. ...{!SObject} {![asddsa__c]} ..{!dsaasd} {!dsaasd2__c}";
         
-        HashMap<String, String> vars = new HashMap<>();
-        vars.put("SObject", "Account");
-        vars.put("SObject2", "Account2");
-        vars.put("asddsa", "asddsa__c");
-        vars.put("dsaasd", "dsaasd__c");
-        vars.put("dsaasd2", "dsaasd2__c");
+//        HashMap<String, String> vars = new HashMap<>();
+//        vars.put("SObject", "Account");
+//        vars.put("SObject2", "Account2");
+//        vars.put("asddsa", "asddsa__c");
+//        vars.put("dsaasd", "dsaasd__c");
+//        vars.put("dsaasd2", "dsaasd2__c");
         
-        if (emailsData.token.equals(token)) {
+        if (rawD.token.equals(token)) {
 //            EmailSender.sendEmail(emailsData.emails);
 //            resp.getWriter().append(
 //                new Gson().toJson(
@@ -81,14 +89,24 @@ public class HelloServlet extends HttpServlet {
         }
 
     }
-
-    class ResponseRawData {
-        RawData rawData;
-        String token;
-    }
-
-    class RawData {
-        Object Metadata;
-    }
     
+}
+
+class ResponseRawData {
+    RawData rawData;
+    String token;
+}
+
+class RawData {
+    FlowMetadata Metadata;
+}
+
+class FlowMetadata {
+    List<Variable> variables;
+}
+
+class Variable {
+    String name;
+    String objectType;
+    String dataType;
 }
