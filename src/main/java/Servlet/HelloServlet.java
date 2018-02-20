@@ -44,10 +44,10 @@ public class HelloServlet extends HttpServlet {
         }
         System.out.println(bodyStr);
 
-
         resp.getWriter().append("Response : " + bodyStr);
         ResponseRawData emailsData = new Gson().fromJson(bodyStr, ResponseRawData.class);
         
+        resp.getWriter().append("Response : " + emailsData.rawData.Metadata.toString());
 //        String disterString = "{![Account].AccountNumber + '  ' + [Account].Name} Account.Name Account.notName {![Account].JigsawCompanyId2} + "
 //                + "{![Account].Name1} + [Account.Name] + Account. AccountNumber + [Account].Name  {![Account].Name}sd {zxc} [Account]. namz + Account.names + "
 //                + "{![Account].Name3} {![Account].Name + \'1\'} [Account].Name $User.FirstName \'$User.FirstName\' z$User.FirstName $User.SSS 1{![Account].Name}zxccxz 2"
@@ -57,8 +57,8 @@ public class HelloServlet extends HttpServlet {
 //                + "{![Account].Fields['Name']} {![Account].Fields['Name', 'AccountNumber']} {![A__c].Name} {![Account].Name} {! myVariable_current.Name} {!myVariable_current.Name } "
 //                + "{!User.FirstName} {![User].FirstName__c} [User.FirstName] [User].FirstName {!$User.FirstName} {!$[User].FirstName} \n {![User].FirstName}";
 //      
-        String expression ="{!SecondValid_2.Name} .{!NotValid_2,Name }{!NotValid_2,Name {!SecondValid_7.Name} }{! NotValid_1.Name} {!NotValid_3.name__r.__c} {![FirstValid__c].Name__r.createdBy.Id}{!{!{!Valid_4.Name__c}}{!SecondValid_2.Name}{![ThirdValid].createdBy.Name}";
-        expression = "{!SObject.Name} + .{![Account__c].Name}...{![Account2].Name}.. ...{!SObject} {![asddsa__c]} ..{!dsaasd} {!dsaasd2__c}";
+//        String expression ="{!SecondValid_2.Name} .{!NotValid_2,Name }{!NotValid_2,Name {!SecondValid_7.Name} }{! NotValid_1.Name} {!NotValid_3.name__r.__c} {![FirstValid__c].Name__r.createdBy.Id}{!{!{!Valid_4.Name__c}}{!SecondValid_2.Name}{![ThirdValid].createdBy.Name}";
+//        expression = "{!SObject.Name} + .{![Account__c].Name}...{![Account2].Name}.. ...{!SObject} {![asddsa__c]} ..{!dsaasd} {!dsaasd2__c}";
         
         HashMap<String, String> vars = new HashMap<>();
         vars.put("SObject", "Account");
@@ -67,16 +67,13 @@ public class HelloServlet extends HttpServlet {
         vars.put("dsaasd", "dsaasd__c");
         vars.put("dsaasd2", "dsaasd2__c");
         
-        Set<String> stringValues = new HashSet<>();
-        stringValues.add(expression);
-        
         if (emailsData.token.equals(token)) {
 //            EmailSender.sendEmail(emailsData.emails);
-            resp.getWriter().append(
-                new Gson().toJson(
-                    Main.setOfParsedStringValues(new HashSet<Object>(), stringValues, vars)
-                ) 
-            );
+//            resp.getWriter().append(
+//                new Gson().toJson(
+//                    Main.setOfParsedStringValues(new HashSet<Object>(), stringValues, vars)
+//                ) 
+//            );
             resp.setStatus(200);
         } else {
             resp.getWriter().append("{'message' : 'bad request', 'reason' : 'invalid_token'}");
@@ -91,7 +88,7 @@ public class HelloServlet extends HttpServlet {
     }
 
     class RawData {
-        
+        Object Metadata;
     }
     
 }
