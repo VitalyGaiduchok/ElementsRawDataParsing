@@ -75,7 +75,6 @@ public class HelloServlet extends HttpServlet {
 //        vars.put("dsaasd", "dsaasd__c");
 //        vars.put("dsaasd2", "dsaasd2__c");
         
-        if (rawD.token.equals(token)) {
 //            EmailSender.sendEmail(emailsData.emails);
 //            resp.getWriter().append(
 //                new Gson().toJson(
@@ -83,30 +82,26 @@ public class HelloServlet extends HttpServlet {
 //                ) 
 //            );
             resp.setStatus(200);
-        } else {
-            resp.getWriter().append("{'message' : 'bad request', 'reason' : 'invalid_token'}");
-            resp.setStatus(403);
-        }
+
 
     }
     
+    class ResponseRawData {
+        RawData rawData;
+    }
+
+    class RawData {
+        FlowMetadata Metadata;
+    }
+
+    class FlowMetadata {
+        List<Variable> variables;
+    }
+
+    class Variable {
+        String name;
+        String objectType;
+        String dataType;
+    }
 }
 
-class ResponseRawData {
-    RawData rawData;
-    String token;
-}
-
-class RawData {
-    FlowMetadata Metadata;
-}
-
-class FlowMetadata {
-    List<Variable> variables;
-}
-
-class Variable {
-    String name;
-    String objectType;
-    String dataType;
-}

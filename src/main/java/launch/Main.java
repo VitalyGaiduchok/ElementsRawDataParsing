@@ -1,6 +1,5 @@
 package launch;
 
-
 import com.google.gson.Gson;
 import java.io.File;
 import java.util.ArrayList;
@@ -161,7 +160,7 @@ public class Main {
             for (Object condition : conditions) {
                 Map<String, Object> conditionMap = (Map<String, Object>) condition;
                 rd = "" + conditionMap.get("leftValueReference");
-                if (rd.contains(".")) { elementReferences.add(rd); }
+                elementReferences.add(rd);
                 ItemValue iValue = (ItemValue) new Gson().fromJson(new Gson().toJson(conditionMap.get("rightValue")), ItemValue.class);
                 if (iValue != null) {
                     if (StringUtils.isBlank(iValue.stringValue)) {
@@ -510,5 +509,31 @@ public class Main {
 //        flow = (HashMap<String, Object>) new Gson().fromJson(abc, (HashMap<String, Object>).class);
         Set<String> stringValues = new HashSet<>();
         stringValues.add(expression);
+        
+        String body = "{ \"rawData\": { \"Metadata\": { \"variables\": [{ \"asd\" : \"zxc\"}, { \"123\" : \"456\"}] } }, \"token\": \"ASDYQW127BFYWEBCAQWUQWNCE38ASDNCNUEO12\" }";
+        ResponseRawData rawD = new Gson().fromJson(body, ResponseRawData.class);
+        System.out.println(rawD.toString());
+        
     }
+    
+    
+    class ResponseRawData {
+        RawData rawData;
+        String token;
+    }
+
+    class RawData {
+        FlowMetadata Metadata;
+    }
+
+    class FlowMetadata {
+        ArrayList<Variable> variables;
+    }
+
+    class Variable {
+        String name;
+        String objectType;
+        String dataType;
+    }
+    
 }
