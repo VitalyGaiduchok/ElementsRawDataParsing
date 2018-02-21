@@ -35,8 +35,9 @@ public class Main {
             List<Object> processMetadataValue = (ArrayList<Object>) item.get("processMetadataValues");
             if (processMetadataValue != null) {
                 for (Object pmv : processMetadataValue) {
-                    if (((HashMap<String, Object>) pmv).get("value") == null) { continue; }
-                    ItemValue iValue = (ItemValue) new Gson().fromJson(new Gson().toJson(((HashMap<String, Object>) pmv).get("value")), ItemValue.class);
+                    HashMap<String, Object> pmvMap = (HashMap<String, Object>) ((HashMap<String, Object>) pmv).get("value");
+                    if (pmvMap == null) { continue; }
+                    ItemValue iValue = (ItemValue) new Gson().fromJson(new Gson().toJson(pmvMap.get("value")), ItemValue.class);
                     if (iValue != null) {
                         if (StringUtils.isBlank(iValue.stringValue)) {
                             stringValues.add(iValue.stringValue);
