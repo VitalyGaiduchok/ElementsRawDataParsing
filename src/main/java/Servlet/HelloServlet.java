@@ -112,5 +112,6 @@ public class HelloServlet extends HttpServlet {
         public String objectType;
         public String dataType;
     }
+    
 }
 

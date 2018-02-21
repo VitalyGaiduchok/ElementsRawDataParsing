@@ -36,7 +36,7 @@ public class Main {
             if (processMetadataValue != null) {
                 for (Object pmv : processMetadataValue) {
                     if (((HashMap<String, Object>) pmv).get("value") == null) { continue; }
-                    ItemValue iValue = (ItemValue) new Gson().fromJson(new Gson().toJson(((Map<String, Object>) pmv).get("value")), ItemValue.class);
+                    ItemValue iValue = (ItemValue) new Gson().fromJson(new Gson().toJson(((HashMap<String, Object>) pmv).get("value")), ItemValue.class);
                     if (iValue != null) {
                         if (StringUtils.isBlank(iValue.stringValue)) {
                             stringValues.add(iValue.stringValue);
@@ -491,8 +491,8 @@ public class Main {
     }
     
     public class ItemValue {
-        private String elementReference;
-        private String stringValue;
+        public String elementReference;
+        public String stringValue;
     }
     
     
