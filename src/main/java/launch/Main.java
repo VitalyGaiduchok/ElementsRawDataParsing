@@ -1,5 +1,8 @@
 package launch;
 
+import Servlet.HelloServlet.FlowMetadata;
+import Servlet.HelloServlet.ResponseRawData;
+import Servlet.HelloServlet.Variable;
 import com.google.gson.Gson;
 import java.io.File;
 import java.util.ArrayList;
@@ -20,8 +23,8 @@ import org.apache.commons.lang3.StringUtils;
 
 public class Main {
 
-    public static Set<Object> getActionCallsFU(Map<String, Object> md, HashMap<String, String> vars) {
-        List<Object> actionCalls = (ArrayList<Object>) md.get("actionCalls");
+    public static Set<Object> getActionCallsFU(FlowMetadata md, ArrayList<Variable> vars) {
+        List<Object> actionCalls = md.actionCalls;
         Set<Object> res = new HashSet<Object>();
         if (actionCalls.isEmpty()) { return res; }
         String rd = "";
@@ -63,15 +66,15 @@ public class Main {
             
         }
         for(String eR : elementReferences) {
-            for (String key : vars.keySet()) {
-                if (eR.startsWith(key)) { 
-                    eR = eR.replace(key, vars.get(key));
+            for (Variable var : vars) {
+                if (eR.startsWith(var.name)) { 
+                    eR = eR.replace(var.name, var.objectType);
                     res.add(eR);
                     break;
                 }
             }
         }
-        res = setOfParsedStringValues(res, stringValues, vars);
+//        res = setOfParsedStringValues(res, stringValues, vars);
         return res;
     }
     
@@ -514,26 +517,6 @@ public class Main {
         ResponseRawData rawD = new Gson().fromJson(body, ResponseRawData.class);
         System.out.println(rawD.toString());
         
-    }
-    
-    
-    class ResponseRawData {
-        RawData rawData;
-        String token;
-    }
-
-    class RawData {
-        FlowMetadata Metadata;
-    }
-
-    class FlowMetadata {
-        ArrayList<Variable> variables;
-    }
-
-    class Variable {
-        String name;
-        String objectType;
-        String dataType;
     }
     
 }

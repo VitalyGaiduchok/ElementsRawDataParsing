@@ -3,6 +3,7 @@ package Servlet;
 import com.google.gson.Gson;
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -55,6 +56,7 @@ public class HelloServlet extends HttpServlet {
             vars.put(var.name, var.objectType);
         }
         resp.getWriter().append("\nResponse : " + vars.toString());
+        resp.getWriter().append("\n\nResponse : " + Main.getActionCallsFU(rawD.rawData.Metadata, rawD.rawData.Metadata.variables).toString());
 
 //        String disterString = "{![Account].AccountNumber + '  ' + [Account].Name} Account.Name Account.notName {![Account].JigsawCompanyId2} + "
 //                + "{![Account].Name1} + [Account.Name] + Account. AccountNumber + [Account].Name  {![Account].Name}sd {zxc} [Account]. namz + Account.names + "
@@ -86,22 +88,29 @@ public class HelloServlet extends HttpServlet {
 
     }
     
-    class ResponseRawData {
+    public class ResponseRawData {
         RawData rawData;
     }
 
-    class RawData {
+    public class RawData {
         FlowMetadata Metadata;
     }
 
-    class FlowMetadata {
-        List<Variable> variables;
+    public class FlowMetadata {
+        public ArrayList<Object> actionCalls;
+        public ArrayList<Object> assignments;
+        public ArrayList<Object> decisions;
+        public ArrayList<Object> processMetadataValues;
+        public ArrayList<Object> recordCreates;
+        public ArrayList<Object> recordLookups;
+        public ArrayList<Object> recordUpdates;
+        public ArrayList<Variable> variables;
     }
 
-    class Variable {
-        String name;
-        String objectType;
-        String dataType;
+    public class Variable {
+        public String name;
+        public String objectType;
+        public String dataType;
     }
 }
 
