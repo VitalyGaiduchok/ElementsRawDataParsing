@@ -57,7 +57,7 @@ public class HelloServlet extends HttpServlet {
             vars.put(var.name, var.objectType);
         }
         resp.getWriter().append("\nResponse : " + vars.toString());
-        resp.getWriter().append("\n\nResponse : " + Main.getActionCallsFU(rawD.rawData.Metadata, rawD.rawData.Metadata.variables).toString());
+//        resp.getWriter().append("\n\nResponse : " + Main.getActionCallsFU(rawD.rawData.Metadata, rawD.rawData.Metadata.variables).toString());
 
 //        String disterString = "{![Account].AccountNumber + '  ' + [Account].Name} Account.Name Account.notName {![Account].JigsawCompanyId2} + "
 //                + "{![Account].Name1} + [Account.Name] + Account. AccountNumber + [Account].Name  {![Account].Name}sd {zxc} [Account]. namz + Account.names + "
