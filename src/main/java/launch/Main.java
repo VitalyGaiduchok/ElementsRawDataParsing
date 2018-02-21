@@ -1,10 +1,10 @@
 package launch;
 
+import Servlet.HelloServlet;
 import Servlet.HelloServlet.FlowMetadata;
 import Servlet.HelloServlet.ResponseRawData;
 import Servlet.HelloServlet.Variable;
 import com.google.gson.Gson;
-import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -23,25 +23,27 @@ import org.apache.commons.lang3.StringUtils;
 
 public class Main {
 
-    public static Set<Object> getActionCallsFU(FlowMetadata md, ArrayList<Variable> vars) {
+    public static Set<String> getActionCallsFU(FlowMetadata md, HashMap<String, String> vars) {
         List<Object> actionCalls = md.actionCalls;
-        Set<Object> res = new HashSet<Object>();
+        Set<String> res = new HashSet<>();
         if (actionCalls.isEmpty()) { return res; }
         String rd = "";
-        Set<String> elementReferences = new HashSet<String>();
-        Set<String> stringValues = new HashSet<String>();
+        Set<String> elementReferences = new HashSet<>();
+        Set<String> stringValues = new HashSet<>();
         for (Object obj : actionCalls) {
             Map<String, Object> item = (Map<String, Object>) obj;
+            if (item.get("actionType").toString().equals("chatterPost")) { continue; }
             List<Object> processMetadataValue = (ArrayList<Object>) item.get("processMetadataValues");
             if (processMetadataValue != null) {
                 for (Object pmv : processMetadataValue) {
-                    if (((HashMap<String, Object>) pmv).get("value") == null) { continue; }
-                    ItemValue iValue = (ItemValue) new Gson().fromJson(new Gson().toJson(((HashMap<String, Object>) pmv).get("value")), ItemValue.class);
+                    HashMap<String, Object> pmvMap = (HashMap<String, Object>) new Gson().fromJson(new Gson().toJson(pmv), HashMap.class);
+                    if (pmvMap.get("value") == null) { continue; }
+                    ItemValue iValue = (ItemValue) new Gson().fromJson(new Gson().toJson(pmvMap.get("value")), ItemValue.class);
                     if (iValue != null) {
-                        if (StringUtils.isBlank(iValue.stringValue)) {
+                        if (!StringUtils.isBlank(iValue.stringValue)) {
                             stringValues.add(iValue.stringValue);
                         }
-                        if (StringUtils.isBlank(iValue.elementReference)) {
+                        if (!StringUtils.isBlank(iValue.elementReference)) {
                             elementReferences.add(iValue.elementReference);
                         }
                     }
@@ -51,13 +53,14 @@ public class Main {
             List<Object> inputParameters = (ArrayList<Object>) item.get("inputParameters");
             if (inputParameters != null) {
                 for (Object pmv : inputParameters) {
-                    if (((Map<String, Object>) pmv).get("value") == null) { continue; }
-                    ItemValue iValue = (ItemValue) new Gson().fromJson(new Gson().toJson(((Map<String, Object>) pmv).get("value")), ItemValue.class);
+                    HashMap<String, Object> pmvMap = (HashMap<String, Object>) new Gson().fromJson(new Gson().toJson(pmv), HashMap.class);
+                    if (pmvMap.get("value") == null) { continue; }
+                    ItemValue iValue = (ItemValue) new Gson().fromJson(new Gson().toJson(pmvMap.get("value")), ItemValue.class);
                     if (iValue != null) {
-                        if (StringUtils.isBlank(iValue.stringValue)) {
+                        if (!StringUtils.isBlank(iValue.stringValue)) {
                             stringValues.add(iValue.stringValue);
                         }
-                        if (StringUtils.isBlank(iValue.elementReference)) {
+                        if (!StringUtils.isBlank(iValue.elementReference)) {
                             elementReferences.add(iValue.elementReference);
                         }
                     }
@@ -66,21 +69,21 @@ public class Main {
             
         }
         for(String eR : elementReferences) {
-            for (Variable var : vars) {
-                if (eR.startsWith(var.name)) { 
-                    eR = eR.replace(var.name, var.objectType);
+            for (String key : vars.keySet()) {
+                if (eR.startsWith(key)) { 
+                    eR = eR.replace(key, vars.get(key));
                     res.add(eR);
                     break;
                 }
             }
         }
-//        res = setOfParsedStringValues(res, stringValues, vars);
+        res = setOfParsedStringValues(res, stringValues, vars);
         return res;
     }
     
-    public static Set<Object> getAssignmentsFU(Map<String, Object> md, HashMap<String, String> vars) {
-        List<Object> assignments = (List<Object>) md.get("assignments");
-        Set<Object> res = new HashSet<Object>();
+    public static Set<String> getAssignmentsFU(FlowMetadata md, HashMap<String, String> vars) {
+        List<Object> assignments = (List<Object>) md.assignments;
+        Set<String> res = new HashSet<>();
         if (assignments.isEmpty()) { return res; }
         String rd = "";
         List<Object> assignmentItems = new ArrayList<Object>();
@@ -104,10 +107,10 @@ public class Main {
                     if (((Map<String, Object>) pmv).get("value") == null) continue;
                     ItemValue iValue = (ItemValue) new Gson().fromJson(new Gson().toJson(((Map<String, Object>) pmv).get("value")), ItemValue.class);
                     if (iValue != null) {
-                        if (StringUtils.isBlank(iValue.stringValue)) {
+                        if (!StringUtils.isBlank(iValue.stringValue)) {
                             stringValues.add(iValue.stringValue);
                         }
-                        if (StringUtils.isBlank(iValue.elementReference)) {
+                        if (!StringUtils.isBlank(iValue.elementReference)) {
                             elementReferences.add(iValue.elementReference);
                         }
                     }
@@ -116,10 +119,10 @@ public class Main {
             if (item.get("value") == null) { continue; }
             ItemValue iValue = (ItemValue) new Gson().fromJson(new Gson().toJson(item.get("value")), ItemValue.class);
             if (iValue != null) {
-                if (StringUtils.isBlank(iValue.stringValue)) {
+                if (!StringUtils.isBlank(iValue.stringValue)) {
                     stringValues.add(iValue.stringValue);
                 }
-                if (StringUtils.isBlank(iValue.elementReference)) {
+                if (!StringUtils.isBlank(iValue.elementReference)) {
                     elementReferences.add(iValue.elementReference);
                 }
             }
@@ -130,6 +133,7 @@ public class Main {
                 if (eR.startsWith(key)) { 
                     eR = eR.replace(key, vars.get(key));
                     res.add(eR);
+                    break;
                 }
             }
         }
@@ -137,9 +141,9 @@ public class Main {
         return res;
     }
     
-    public static Set<Object> getDecisionsFU(Map<String, Object> md, HashMap<String, String> vars) {
-        List<Object> decisions = (List<Object>) md.get("decisions");
-        Set<Object> res = new HashSet<Object>();
+    public static Set<String> getDecisionsFU(FlowMetadata md, HashMap<String, String> vars) {
+        List<Object> decisions = (List<Object>) md.decisions;
+        Set<String> res = new HashSet<>();
         if (decisions.isEmpty()) { return res; }
         String rd = "";
         List<Object> allRules = new ArrayList<Object>();
@@ -162,14 +166,14 @@ public class Main {
             
             for (Object condition : conditions) {
                 Map<String, Object> conditionMap = (Map<String, Object>) condition;
-                rd = "" + conditionMap.get("leftValueReference");
+                rd = conditionMap.get("leftValueReference").toString();
                 elementReferences.add(rd);
                 ItemValue iValue = (ItemValue) new Gson().fromJson(new Gson().toJson(conditionMap.get("rightValue")), ItemValue.class);
                 if (iValue != null) {
-                    if (StringUtils.isBlank(iValue.stringValue)) {
+                    if (!StringUtils.isBlank(iValue.stringValue)) {
                         stringValues.add(iValue.stringValue);
                     }
-                    if (StringUtils.isBlank(iValue.elementReference)) {
+                    if (!StringUtils.isBlank(iValue.elementReference)) {
                         elementReferences.add(iValue.elementReference);
                     }
                 }            
@@ -178,7 +182,7 @@ public class Main {
         }
         for(String eR : elementReferences) {
             for (String key : vars.keySet()) {
-                if (eR.startsWith(key)) { 
+                if (eR.equals(key)) { 
                     eR = eR.replace(key, vars.get(key));
                     res.add(eR);
                 }
@@ -188,9 +192,9 @@ public class Main {
         return res;
     }
     
-    public static Set<Object> getRecordUpdatesFU(Map<String, Object> md, HashMap<String, String> vars) {
-        List<Object> recordUpdates = (List<Object>) md.get("recordUpdates");
-        Set<Object> res = new HashSet<Object>();
+    public static Set<String> getRecordUpdatesFU(FlowMetadata md, HashMap<String, String> vars) {
+        List<Object> recordUpdates = md.recordUpdates;
+        Set<String> res = new HashSet<>();
         if (recordUpdates.isEmpty()) { return res; }
         String recordUpdateRD = "";
         Set<String> elementReferences = new HashSet<String>();
@@ -207,10 +211,10 @@ public class Main {
                     res.add(recordUpdateRD);
                     ItemValue iValue = (ItemValue) new Gson().fromJson(new Gson().toJson(iFilter.get("value")), ItemValue.class);
                     if (iValue != null) {
-                        if (StringUtils.isBlank(iValue.stringValue)) {
+                        if (!StringUtils.isBlank(iValue.stringValue)) {
                             stringValues.add(iValue.stringValue);
                         }
-                        if (StringUtils.isBlank(iValue.elementReference)) {
+                        if (!StringUtils.isBlank(iValue.elementReference)) {
                             elementReferences.add(iValue.elementReference);
                         }
                     }
@@ -225,10 +229,10 @@ public class Main {
                     res.add(recordUpdateRD);
                     ItemValue iValue = (ItemValue) new Gson().fromJson(new Gson().toJson(iAssignment.get("value")), ItemValue.class);
                     if (iValue != null) {
-                        if (StringUtils.isBlank(iValue.stringValue)) {
+                        if (!StringUtils.isBlank(iValue.stringValue)) {
                             stringValues.add(iValue.stringValue);
                         }
-                        if (StringUtils.isBlank(iValue.elementReference)) {
+                        if (!StringUtils.isBlank(iValue.elementReference)) {
                             elementReferences.add(iValue.elementReference);
                         }
                     }
@@ -241,10 +245,10 @@ public class Main {
                     if (((Map<String, Object>) pmv).get("value") == null) continue;
                     ItemValue iValue = (ItemValue) new Gson().fromJson(new Gson().toJson(((Map<String, Object>) pmv).get("value")), ItemValue.class);
                     if (iValue != null) {
-                        if (StringUtils.isBlank(iValue.stringValue)) {
+                        if (!StringUtils.isBlank(iValue.stringValue)) {
                             stringValues.add(iValue.stringValue);
                         }
-                        if (StringUtils.isBlank(iValue.elementReference)) {
+                        if (!StringUtils.isBlank(iValue.elementReference)) {
                             elementReferences.add(iValue.elementReference);
                         }
                     }
@@ -264,9 +268,9 @@ public class Main {
         return res;
     }
     
-    public static Set<Object> getRecordLookupsFU(Map<String, Object> md, HashMap<String, String> vars) {
-        List<Object> recordLookups = (List<Object>) md.get("recordLookups");
-        Set<Object> res = new HashSet<Object>();
+    public static Set<String> getRecordLookupsFU(FlowMetadata md, HashMap<String, String> vars) {
+        List<Object> recordLookups = (List<Object>) md.recordLookups;
+        Set<String> res = new HashSet<>();
         if (recordLookups.isEmpty()) { return res; }
         String recordLookupRD = "";
         Set<String> elementReferences = new HashSet<String>();
@@ -282,10 +286,10 @@ public class Main {
                     res.add(recordLookupRD);
                     ItemValue iValue = (ItemValue) new Gson().fromJson(new Gson().toJson(iFilter.get("value")), ItemValue.class);
                     if (iValue != null) {
-                        if (StringUtils.isBlank(iValue.stringValue)) {
+                        if (!StringUtils.isBlank(iValue.stringValue)) {
                             stringValues.add(iValue.stringValue);
                         }
-                        if (StringUtils.isBlank(iValue.elementReference)) {
+                        if (!StringUtils.isBlank(iValue.elementReference)) {
                             elementReferences.add(iValue.elementReference);
                         }
                     }
@@ -320,9 +324,9 @@ public class Main {
         return res;
     }
     
-    public static Set<Object> getRecordCreatesFU(Map<String, Object> md, HashMap<String, String> vars) {
-        List<Object> recordCreates = (List<Object>) md.get("recordCreates");
-        Set<Object> res = new HashSet<Object>();
+    public static Set<String> getRecordCreatesFU(FlowMetadata md, HashMap<String, String> vars) {
+        List<Object> recordCreates = (List<Object>) md.recordCreates;
+        Set<String> res = new HashSet<>();
         if (recordCreates.isEmpty()) { return res; }
         String recordCreateRD = "";
         Set<String> elementReferences = new HashSet<String>();
@@ -337,10 +341,10 @@ public class Main {
                     res.add(recordCreateRD);
                     if (((Map<String, Object>) inputAssignment).get("value") == null) { continue; }
                     ItemValue iValue = (ItemValue) new Gson().fromJson(new Gson().toJson(((Map<String, Object>) inputAssignment).get("value")), ItemValue.class);
-                    if (StringUtils.isBlank(iValue.stringValue)) {
+                    if (!StringUtils.isBlank(iValue.stringValue)) {
                         stringValues.add(iValue.stringValue);
                     }
-                    if (StringUtils.isBlank(iValue.elementReference)) {
+                    if (!StringUtils.isBlank(iValue.elementReference)) {
                         elementReferences.add(iValue.elementReference);
                     }
                 } 
@@ -358,9 +362,9 @@ public class Main {
         return res;
     }
     
-    public static Set<Object> getFlowFormulasFU(Map<String, Object> md, HashMap<String, String> vars) {
-        List<Object> formulas = (ArrayList<Object>) md.get("formulas");
-        Set<Object> res = new HashSet<Object>();
+    public static Set<String> getFlowFormulasFU(FlowMetadata md, HashMap<String, String> vars) {
+        List<Object> formulas = (ArrayList<Object>) md.formulas;
+        Set<String> res = new HashSet<>();
         if (formulas.isEmpty()) { return res; }
         
         Set<String> stringValues = new HashSet<String>();
@@ -384,9 +388,9 @@ public class Main {
         return setOfParsedStringValues(res, stringValues, vars);
     }
     
-    public static Set<Object> getProcessMetadataValuesFromMDFU(Map<String, Object> md, HashMap<String, String> vars) {
-        List<Object> processMetadataValues = (ArrayList<Object>) md.get("processMetadataValues");
-        Set<Object> res = new HashSet<Object>();
+    public static Set<String> getProcessMetadataValuesFromMDFU(FlowMetadata md, HashMap<String, String> vars) {
+        List<Object> processMetadataValues = (ArrayList<Object>) md.processMetadataValues;
+        Set<String> res = new HashSet<>();
         if (processMetadataValues.isEmpty()) { return res; }
         
         Set<String> stringValues = new HashSet<String>();
@@ -395,17 +399,17 @@ public class Main {
             Map<String, Object> item = (Map<String, Object>) obj;
             if (((Map<String, Object>) item).get("value") == null) { continue; }
             ItemValue iValue = (ItemValue) new Gson().fromJson(new Gson().toJson(((Map<String, Object>) item).get("value")), ItemValue.class);
-            if (StringUtils.isBlank(iValue.stringValue)) {
+            if (!StringUtils.isBlank(iValue.stringValue)) {
                 stringValues.add(iValue.stringValue);
             }
-            if (StringUtils.isBlank(iValue.elementReference)) {
+            if (!StringUtils.isBlank(iValue.elementReference)) {
                 elementReferences.add(iValue.elementReference);
             }
         }
         return setOfParsedStringValues(res, stringValues, vars);
     }
 
-    public static Set<Object> setOfParsedStringValues(Set<Object> res, Set<String> stringValues, HashMap<String, String> vars) {
+    public static Set<String> setOfParsedStringValues(Set<String> res, Set<String> stringValues, HashMap<String, String> vars) {
         
         //For stringValue
         String firstSymbol = "[a-zA-Z]" + "([_]{0,1}[a-zA-Z0-9]+)*";
@@ -439,8 +443,60 @@ public class Main {
         return res;
     }
     
-    public static Set<Object> setOfParsedChatterStringValues(Set<Object> res, Set<String> stringValues, HashMap<String, String> vars) {
+    public static Set<String> setOfParsedChatterStringValues(FlowMetadata md, HashMap<String, String> vars) {
         //For chatter message
+        List<Object> actionCalls = md.actionCalls;
+        Set<String> res = new HashSet<>();
+        if (actionCalls.isEmpty()) { return res; }
+        String rd = "";
+        Set<String> elementReferences = new HashSet<>();
+        Set<String> stringValues = new HashSet<>();
+        for (Object obj : actionCalls) {
+            Map<String, Object> item = (Map<String, Object>) obj;
+            if (!item.get("actionType").toString().equals("chatterPost")) { continue; }
+            List<Object> processMetadataValue = (ArrayList<Object>) item.get("processMetadataValues");
+            if (processMetadataValue != null) {
+                for (Object pmv : processMetadataValue) {
+                    HashMap<String, Object> pmvMap = (HashMap<String, Object>) new Gson().fromJson(new Gson().toJson(pmv), HashMap.class);
+                    if (pmvMap.get("value") == null) { continue; }
+                    ItemValue iValue = (ItemValue) new Gson().fromJson(new Gson().toJson(pmvMap.get("value")), ItemValue.class);
+                    if (iValue != null) {
+                        if (!StringUtils.isBlank(iValue.stringValue)) {
+                            stringValues.add(iValue.stringValue);
+                        }
+                        if (!StringUtils.isBlank(iValue.elementReference)) {
+                            elementReferences.add(iValue.elementReference);
+                        }
+                    }
+                } 
+            }
+            
+            List<Object> inputParameters = (ArrayList<Object>) item.get("inputParameters");
+            if (inputParameters != null) {
+                for (Object pmv : inputParameters) {
+                    if (((Map<String, Object>) pmv).get("value") == null) { continue; }
+                    ItemValue iValue = (ItemValue) new Gson().fromJson(new Gson().toJson(((Map<String, Object>) pmv).get("value")), ItemValue.class);
+                    if (iValue != null) {
+                        if (!StringUtils.isBlank(iValue.stringValue)) {
+                            stringValues.add(iValue.stringValue);
+                        }
+                        if (!StringUtils.isBlank(iValue.elementReference)) {
+                            elementReferences.add(iValue.elementReference);
+                        }
+                    }
+                }
+            }
+            
+        }
+        for(String eR : elementReferences) {
+            for (String key : vars.keySet()) {
+                if (eR.startsWith(key)) { 
+                    eR = eR.replace(key, vars.get(key));
+                    res.add(eR);
+                    break;
+                }
+            }
+        }
         String swlanmtoubl = "[a-zA-Z]" + "([_]{0,1}[a-zA-Z0-9]+)*";
         String middleValueRegex = "[{]!((" + swlanmtoubl + ")|(\\u005B" + swlanmtoubl + "([_]{2}[crCR]){0,1}\\u005D))" +  
         "([.]{1}" + swlanmtoubl + "([_]{2}[rR]){0,1}){0,8}([.]{1}" + swlanmtoubl + "([_]{2}[crCR]){0,1}){0,1}[}]";
@@ -485,11 +541,6 @@ public class Main {
         return res;
     }
     
-    public class Var {
-        String name;
-        String objectType;
-    }
-    
     public class ItemValue {
         public String elementReference;
         public String stringValue;
@@ -497,25 +548,47 @@ public class Main {
     
     
     public static void main(String[] args) throws Exception {
-        String expression ="{!SecondValid_2.Name} .{!NotValid_2,Name }{!NotValid_2,Name {!SecondValid_7.Name} }{! NotValid_1.Name} {!NotValid_3.name__r.__c} {![FirstValid__c].Name__r.createdBy.Id}{!{!{!Valid_4.Name__c}}{!SecondValid_2.Name}{![ThirdValid].createdBy.Name}";
-        expression = "{!SObject.Name} + .{![Account__c].Name}...{![Account2].Name}.. ...{!SObject} {![asddsa__c]} ..{!dsaasd} {!dsaasd2__c}";
         
-        HashMap<String, String> vars = new HashMap<>();
-        vars.put("SObject", "Account");
-        vars.put("SObject2", "Account2");
-        vars.put("asddsa", "asddsa__c");
-        vars.put("dsaasd", "dsaasd__c");
-        vars.put("dsaasd2", "dsaasd2__c");
-        
-        String abc = "";
-        HashMap<String, Object> flow;
-//        flow = (HashMap<String, Object>) new Gson().fromJson(abc, (HashMap<String, Object>).class);
-        Set<String> stringValues = new HashSet<>();
-        stringValues.add(expression);
-        
-        String body = "{ \"rawData\": { \"Metadata\": { \"variables\": [{ \"asd\" : \"zxc\"}, { \"123\" : \"456\"}] } }, \"token\": \"ASDYQW127BFYWEBCAQWUQWNCE38ASDNCNUEO12\" }";
-        ResponseRawData rawD = new Gson().fromJson(body, ResponseRawData.class);
+        System.out.println(HelloServlet.returnJsonString());
+        String bodyStr = HelloServlet.returnJsonString();
+        ResponseRawData rawD = new Gson().fromJson(bodyStr, ResponseRawData.class);
         System.out.println(rawD.toString());
+        System.out.println(rawD.rawData.toString());
+        System.out.println(rawD.rawData.Metadata.toString());
+        System.out.println(rawD.rawData.Metadata.variables.toString());
+        HashMap<String, String> vars = new HashMap<String, String>();
+        for (Variable var : rawD.rawData.Metadata.variables) {
+            if (StringUtils.isBlank(var.objectType)) { continue; }
+            vars.put(var.name, var.objectType);
+        }
+        System.out.println("\n\n1: getActionCallsFU Response : " + getActionCallsFU(rawD.rawData.Metadata, vars));
+        System.out.println("\n\n2: getAssignmentsFU Response : " + getAssignmentsFU(rawD.rawData.Metadata, vars));
+        System.out.println("\n\n3: getDecisionsFU Response : " + getDecisionsFU(rawD.rawData.Metadata, vars));
+        System.out.println("\n\n4: getRecordCreatesFU Response : " + getRecordCreatesFU(rawD.rawData.Metadata, vars));
+        System.out.println("\n\n5: getRecordLookupsFU Response : " + getRecordLookupsFU(rawD.rawData.Metadata, vars));
+        System.out.println("\n\n6: getRecordUpdatesFU Response : " + getRecordUpdatesFU(rawD.rawData.Metadata, vars));
+        System.out.println("\n\n7: getFlowFormulasFU Response : " + getFlowFormulasFU(rawD.rawData.Metadata, vars));
+        System.out.println("\n\n8: getProcessMetadataValuesFromMDFU Response : " + getProcessMetadataValuesFromMDFU(rawD.rawData.Metadata, vars));
+        System.out.println("\n\n9: setOfParsedChatterStringValues Response : " + setOfParsedChatterStringValues(rawD.rawData.Metadata, vars));
+//        String expression ="{!SecondValid_2.Name} .{!NotValid_2,Name }{!NotValid_2,Name {!SecondValid_7.Name} }{! NotValid_1.Name} {!NotValid_3.name__r.__c} {![FirstValid__c].Name__r.createdBy.Id}{!{!{!Valid_4.Name__c}}{!SecondValid_2.Name}{![ThirdValid].createdBy.Name}";
+//        expression = "{!SObject.Name} + .{![Account__c].Name}...{![Account2].Name}.. ...{!SObject} {![asddsa__c]} ..{!dsaasd} {!dsaasd2__c}";
+//        
+//        HashMap<String, String> vars = new HashMap<>();
+//        vars.put("SObject", "Account");
+//        vars.put("SObject2", "Account2");
+//        vars.put("asddsa", "asddsa__c");
+//        vars.put("dsaasd", "dsaasd__c");
+//        vars.put("dsaasd2", "dsaasd2__c");
+//        
+//        String abc = "";
+//        HashMap<String, Object> flow;
+////        flow = (HashMap<String, Object>) new Gson().fromJson(abc, (HashMap<String, Object>).class);
+//        Set<String> stringValues = new HashSet<>();
+//        stringValues.add(expression);
+//        
+//        String body = "{ \"rawData\": { \"Metadata\": { \"variables\": [{ \"asd\" : \"zxc\"}, { \"123\" : \"456\"}] } }, \"token\": \"ASDYQW127BFYWEBCAQWUQWNCE38ASDNCNUEO12\" }";
+//        ResponseRawData rawD = new Gson().fromJson(body, ResponseRawData.class);
+//        System.out.println(rawD.toString());
         
     }
     

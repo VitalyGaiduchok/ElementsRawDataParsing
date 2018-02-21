@@ -2,6 +2,9 @@ package Servlet;
 
 import com.google.gson.Gson;
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -17,6 +20,14 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import launch.Main;
+import static launch.Main.getActionCallsFU;
+import static launch.Main.getDecisionsFU;
+import static launch.Main.getFlowFormulasFU;
+import static launch.Main.getProcessMetadataValuesFromMDFU;
+import static launch.Main.getRecordCreatesFU;
+import static launch.Main.getRecordLookupsFU;
+import static launch.Main.getRecordUpdatesFU;
+import static launch.Main.setOfParsedChatterStringValues;
 import org.apache.commons.lang3.StringUtils;
 
 @WebServlet(
@@ -47,17 +58,19 @@ public class HelloServlet extends HttpServlet {
         }
         System.out.println(bodyStr);
 
-        resp.getWriter().append("Response : " + bodyStr);
+//        resp.getWriter().append("Response : " + bodyStr);
         ResponseRawData rawD = new Gson().fromJson(bodyStr, ResponseRawData.class);
         
-        resp.getWriter().append("\nResponse : " + rawD.rawData.Metadata.toString());
-        Map<String, String> vars = new HashMap<String, String>();
+//        resp.getWriter().append("\nResponse : " + rawD.rawData.Metadata.toString());
+        HashMap<String, String> vars = new HashMap<String, String>();
         for (Variable var : rawD.rawData.Metadata.variables) {
             if (StringUtils.isBlank(var.objectType)) { continue; }
             vars.put(var.name, var.objectType);
         }
-        resp.getWriter().append("\nResponse : " + vars.toString());
-        resp.getWriter().append("\n\nResponse : " + Main.getActionCallsFU(rawD.rawData.Metadata, rawD.rawData.Metadata.variables).toString());
+        Set<String> result = new HashSet<>();
+        resp.getWriter().append(new Gson().toJson(returnAllFields(rawD.rawData.Metadata, vars)));
+//        resp.getWriter().append("\nResponse : " + vars.toString());
+//        resp.getWriter().append("\n\nResponse : " + Main.getActionCallsFU(rawD.rawData.Metadata, vars).toString());
 
 //        String disterString = "{![Account].AccountNumber + '  ' + [Account].Name} Account.Name Account.notName {![Account].JigsawCompanyId2} + "
 //                + "{![Account].Name1} + [Account.Name] + Account. AccountNumber + [Account].Name  {![Account].Name}sd {zxc} [Account]. namz + Account.names + "
@@ -90,17 +103,18 @@ public class HelloServlet extends HttpServlet {
     }
     
     public class ResponseRawData {
-        RawData rawData;
+        public RawData rawData;
     }
 
     public class RawData {
-        FlowMetadata Metadata;
+        public FlowMetadata Metadata;
     }
 
     public class FlowMetadata {
         public ArrayList<Object> actionCalls;
         public ArrayList<Object> assignments;
         public ArrayList<Object> decisions;
+        public ArrayList<Object> formulas;
         public ArrayList<Object> processMetadataValues;
         public ArrayList<Object> recordCreates;
         public ArrayList<Object> recordLookups;
@@ -112,6 +126,34 @@ public class HelloServlet extends HttpServlet {
         public String name;
         public String objectType;
         public String dataType;
+    }
+    
+    public static String returnJsonString() throws IOException {
+        File f = new File("FlowJson.json");
+        FileReader fr = new FileReader(f);
+        BufferedReader br = new BufferedReader(fr);
+        String bodyLines = null;
+        String bodyStr = "";
+        while ((bodyLines = br.readLine())!=null) {
+            bodyStr+=bodyLines;
+        }
+        br.close();
+        fr.close();
+        return bodyStr;
+    }
+    
+    public static Set<String> returnAllFields(FlowMetadata metadata, HashMap<String, String> vars) {
+        Set<String> res = new HashSet<>();
+        res.addAll(Main.getActionCallsFU(metadata, vars));
+        res.addAll(Main.getAssignmentsFU(metadata, vars));
+        res.addAll(Main.getDecisionsFU(metadata, vars));
+        res.addAll(Main.getRecordCreatesFU(metadata, vars));
+        res.addAll(Main.getRecordLookupsFU(metadata, vars));
+        res.addAll(Main.getRecordUpdatesFU(metadata, vars));
+        res.addAll(Main.getFlowFormulasFU(metadata, vars));
+        res.addAll(Main.getProcessMetadataValuesFromMDFU(metadata, vars));
+        res.addAll(Main.setOfParsedChatterStringValues(metadata, vars));
+        return res;
     }
     
 }
