@@ -2,6 +2,7 @@ package launch;
 
 import Servlet.HelloServlet;
 import Servlet.HelloServlet.FlowMetadata;
+import Servlet.HelloServlet.RawData;
 import Servlet.HelloServlet.ResponseRawData;
 import Servlet.HelloServlet.Variable;
 import com.google.gson.Gson;
@@ -70,7 +71,7 @@ public class Main {
         }
         for(String eR : elementReferences) {
             for (String key : vars.keySet()) {
-                if (eR.startsWith(key)) { 
+                if (eR.startsWith(key + ".") || eR.equals(key)) {  
                     eR = eR.replace(key, vars.get(key));
                     res.add(eR);
                     break;
@@ -130,7 +131,7 @@ public class Main {
         }
         for(String eR : elementReferences) {
             for (String key : vars.keySet()) {
-                if (eR.startsWith(key)) { 
+                if (eR.startsWith(key + ".") || eR.equals(key)) {  
                     eR = eR.replace(key, vars.get(key));
                     res.add(eR);
                     break;
@@ -182,7 +183,7 @@ public class Main {
         }
         for(String eR : elementReferences) {
             for (String key : vars.keySet()) {
-                if (eR.equals(key)) { 
+                if (eR.startsWith(key + ".") || eR.equals(key)) {  
                     eR = eR.replace(key, vars.get(key));
                     res.add(eR);
                 }
@@ -258,7 +259,7 @@ public class Main {
         }
         for(String eR : elementReferences) {
             for (String key : vars.keySet()) {
-                if (eR.startsWith(key)) { 
+                if (eR.startsWith(key + ".") || eR.equals(key)) {  
                     eR = eR.replace(key, vars.get(key));
                     res.add(eR);
                 }
@@ -314,7 +315,7 @@ public class Main {
         }
         for(String eR : elementReferences) {
             for (String key : vars.keySet()) {
-                if (eR.startsWith(key)) { 
+                if (eR.startsWith(key + ".") || eR.equals(key)) {  
                     eR = eR.replace(key, vars.get(key));
                     res.add(eR);
                 }
@@ -352,7 +353,7 @@ public class Main {
         }
         for(String eR : elementReferences) {
             for (String key : vars.keySet()) {
-                if (eR.startsWith(key)) { 
+                if (eR.startsWith(key + ".") || eR.equals(key)) {  
                     eR = eR.replace(key, vars.get(key));
                     res.add(eR);
                 }
@@ -371,19 +372,17 @@ public class Main {
         for (Object obj : formulas) {
             Map<String, Object> item = (Map<String, Object>) obj;
             String expression = "" + item.get("expression");
-            if (expression.contains(".")) { 
-                stringValues.add(expression);
-            }
-            List<Object> objs = (List<Object>) item.get("processMetadataValues");
-            if (objs != null) {
-                for (Object o : objs) {
-                    Map<String, Object> oMap = (Map<String, Object>) o;
-                    if ("" + oMap.get("name") == "originalFormula") {
-                        expression = "" + ((Map<String, Object>) oMap.get("value")).get("stringValue");
-                        stringValues.add(expression);
-                    }
-                }
-            }
+            stringValues.add(expression);
+//            List<Object> objs = (List<Object>) item.get("processMetadataValues");
+//            if (objs != null) {
+//                for (Object o : objs) {
+//                    Map<String, Object> oMap = (Map<String, Object>) o;
+//                    if ("" + oMap.get("name") == "originalFormula") {
+//                        expression = "" + ((Map<String, Object>) oMap.get("value")).get("stringValue");
+//                        stringValues.add(expression);
+//                    }
+//                }
+//            }
         }
         return setOfParsedStringValues(res, stringValues, vars);
     }
@@ -410,22 +409,35 @@ public class Main {
     }
 
     public static Set<String> setOfParsedStringValues(Set<String> res, Set<String> stringValues, HashMap<String, String> vars) {
-        
+        System.out.println("HERE WE ARE 411: ");
+        System.out.println("res: " + res.toString());
+        System.out.println("stringValues: " + stringValues.toString());
+        System.out.println("vars: " + vars);
         //For stringValue
-        String firstSymbol = "[a-zA-Z]" + "([_]{0,1}[a-zA-Z0-9]+)*";
-        String stringValueRegex = "[{]!(" + firstSymbol + ")" +  
-        "([.]{1}" + firstSymbol + "([_]{2}[rR]){0,1}){0,8}([.]{1}" + firstSymbol + "([_]{2}[crCR]){0,1}){0,1}[}]";
+//        String firstSymbol = "[a-zA-Z]" + "([_]?[a-zA-Z0-9]+)*";
+//        String stringValueRegex = "[{]!(" + firstSymbol + ")" +  
+//                                  "([.]{1}" + firstSymbol + "([_]{2}[rR])?){0,8}([.]{1}" + firstSymbol + "([_]{2}[crCR])?)?[}]";
+        String startOfExpression = "[{]!";
+        String swlanmtoubl = "[a-zA-Z]" + "([_]?[a-zA-Z0-9]+)*";
+        String caseForObject1 = swlanmtoubl + "([_]{2}" + swlanmtoubl + "([_]{2}[crCR])?)?";
+        String caseForObject2 = "(\\u005B" + caseForObject1 + "([_]{2}[crCR])?\\u005D)";
+        String caseForField1 = "([.]{1}" + swlanmtoubl + "([_]{2}" + swlanmtoubl  + ")?([_]{2}[rR])?){0,8}";
+        String caseForField2 = "([.]{1}" + swlanmtoubl + "([_]{2}" + swlanmtoubl  + ")?([_]{2}[crCR])?)?";
+        String exprssionForCasses = "((" + caseForObject1  + ")|(" + caseForObject2 + "))";
+        String endOfExpression = "[}]";
+//        System.out.println(startOfExpression + exprssionForCasses + caseForField1 + caseForField2 + endOfExpression);
+        String stringValueRegex = startOfExpression + exprssionForCasses + caseForField1 + caseForField2 + endOfExpression;
         Pattern p = Pattern.compile(stringValueRegex);
         for (String sValue : stringValues) {
             Matcher m = p.matcher(sValue);
             while (m.find()) {
-                System.out.println(m.group() + ", length : " + m.group().length() + ", indexOf: " + m.group().indexOf("."));
+                System.out.println("LINE 432: " + m.group() + ", length : " + m.group().length() + ", indexOf: " + m.group().indexOf("."));
                 if (m.group().indexOf(".") > 0) {
                     String keyMatch = m.group().substring(2, m.group().indexOf("."));
                     vars.forEach((k,v)->{
                             if(!keyMatch.equals("") && keyMatch.equals(k)){
         //                        System.out.println("key k: " + k);
-                                res.add(m.group().replace(k, v));
+                                res.add(m.group().replace(k, v).replace("[", "").replace("]", "").replace("{!", "").replace("}", ""));
                             }
 
                     });
@@ -434,7 +446,7 @@ public class Main {
                     vars.forEach((k,v)->{
                             if(!keyMatch.equals("") && keyMatch.equals(k)){
         //                        System.out.println("key k: " + k);
-                                res.add(m.group().replace(k, v));
+                                res.add(m.group().replace(k, v).replace("[", "").replace("]", "").replace("{!", "").replace("}", ""));
                             }
                     });
                 }
@@ -490,16 +502,25 @@ public class Main {
         }
         for(String eR : elementReferences) {
             for (String key : vars.keySet()) {
-                if (eR.startsWith(key)) { 
+                if (eR.startsWith(key + ".") || eR.equals(key)) {  
                     eR = eR.replace(key, vars.get(key));
                     res.add(eR);
                     break;
                 }
             }
         }
-        String swlanmtoubl = "[a-zA-Z]" + "([_]{0,1}[a-zA-Z0-9]+)*";
-        String middleValueRegex = "[{]!((" + swlanmtoubl + ")|(\\u005B" + swlanmtoubl + "([_]{2}[crCR]){0,1}\\u005D))" +  
-        "([.]{1}" + swlanmtoubl + "([_]{2}[rR]){0,1}){0,8}([.]{1}" + swlanmtoubl + "([_]{2}[crCR]){0,1}){0,1}[}]";
+        String startOfExpression = "[{]!";
+        String swlanmtoubl = "[a-zA-Z]" + "([_]?[a-zA-Z0-9]+)*";
+        String caseForObject1 = swlanmtoubl + "([_]{2}" + swlanmtoubl + "([_]{2}[crCR])?)?";
+        String caseForObject2 = "(\\u005B" + caseForObject1 + "([_]{2}[crCR])?\\u005D)";
+        String caseForField1 = "([.]{1}" + swlanmtoubl + "([_]{2}" + swlanmtoubl  + ")?([_]{2}[rR])?){0,8}";
+        String caseForField2 = "([.]{1}" + swlanmtoubl + "([_]{2}" + swlanmtoubl  + ")?([_]{2}[crCR])?)?";
+        String exprssionForCasses = "((" + caseForObject1  + ")|(" + caseForObject2 + "))";
+        String endOfExpression = "[}]";
+//        System.out.println(startOfExpression + exprssionForCasses + caseForField1 + caseForField2 + endOfExpression);
+        String middleValueRegex = startOfExpression + exprssionForCasses + caseForField1 + caseForField2 + endOfExpression;
+//        String middleValueRegex = "[{]!((" + swlanmtoubl + ")|(\\u005B" + swlanmtoubl + "([_]{2}[crCR]){0,1}\\u005D))" +  
+//                                  "([.]{1}" + swlanmtoubl + "([_]{2}[rR])?){0,8}([.]{1}" + swlanmtoubl + "([_]{2}[crCR])?)?[}]";
         Pattern p = Pattern.compile(middleValueRegex);
         List<String> strsList = new ArrayList<String>();
         for (String sValue : stringValues) {
@@ -513,13 +534,12 @@ public class Main {
                     vars.forEach((k,v)->{
                             if(!keyMatch.equals("") && keyMatch.equals(k)){
         //                        System.out.println("key k: " + k);
-                                res.add(m.group().replace(k, v));
+                                res.add(m.group().replace(k, v).replace("[", "").replace("]", "").replace("{!", "").replace("}", ""));
                             }
                             if(!valueMatch.equals("") && valueMatch.equals(v)){
         //                        System.out.println("value v: " + v);
-                                res.add(m.group().replace("[", "").replace("]", ""));
+                                res.add(m.group().replace("[", "").replace("]", "").replace("{!", "").replace("}", ""));
                             }
-
                     });
                 } else {
                     Integer LBracketIndex = m.group().indexOf("]");
@@ -528,11 +548,11 @@ public class Main {
                     vars.forEach((k,v)->{
                             if(!keyMatch.equals("") && keyMatch.equals(k)){
         //                        System.out.println("key k: " + k);
-                                res.add(m.group().replace(k, v));
+                                res.add(m.group().replace(k, v).replace("[", "").replace("]", "").replace("{!", "").replace("}", ""));
                             }
                             if(!valueMatch.equals("") && valueMatch.equals(v)){
         //                        System.out.println("value v: " + v);
-                                res.add(m.group().replace("[", "").replace("]", ""));
+                                res.add(m.group().replace("[", "").replace("]", "").replace("{!", "").replace("}", ""));
                             }
                     });
                 }
@@ -549,27 +569,39 @@ public class Main {
     
     public static void main(String[] args) throws Exception {
         
-        System.out.println(HelloServlet.returnJsonString());
+//        System.out.println(HelloServlet.returnJsonString());
         String bodyStr = HelloServlet.returnJsonString();
         ResponseRawData rawD = new Gson().fromJson(bodyStr, ResponseRawData.class);
-        System.out.println(rawD.toString());
-        System.out.println(rawD.rawData.toString());
-        System.out.println(rawD.rawData.Metadata.toString());
-        System.out.println(rawD.rawData.Metadata.variables.toString());
-        HashMap<String, String> vars = new HashMap<String, String>();
-        for (Variable var : rawD.rawData.Metadata.variables) {
-            if (StringUtils.isBlank(var.objectType)) { continue; }
-            vars.put(var.name, var.objectType);
+//        System.out.println(rawD.toString());
+//        System.out.println(rawD.rawData.toString());
+//        System.out.println(rawD.rawData.Metadata.toString());
+//        System.out.println(rawD.rawData.Metadata.variables.toString());
+        Set<String> superReturn = new HashSet<>();
+        for (RawData rd : rawD.rawData) {
+
+            HashMap<String, String> vars = new HashMap<String, String>();
+            for (Variable var : rd.Metadata.variables) {
+                if (StringUtils.isBlank(var.objectType)) { continue; }
+                vars.put(var.name, var.objectType);
+            }
+            vars.forEach((k,v)->{
+                    System.out.println("\nkey: " + k + ", value: " + v);
+            });        
+            System.out.println("\n\n1: getActionCallsFU Response : " + getActionCallsFU(rd.Metadata, vars));
+            System.out.println("\n\n2: getAssignmentsFU Response : " + getAssignmentsFU(rd.Metadata, vars));
+            System.out.println("\n\n3: getDecisionsFU Response : " + getDecisionsFU(rd.Metadata, vars));
+            System.out.println("\n\n4: getRecordCreatesFU Response : " + getRecordCreatesFU(rd.Metadata, vars));
+            System.out.println("\n\n5: getRecordLookupsFU Response : " + getRecordLookupsFU(rd.Metadata, vars));
+            System.out.println("\n\n6: getRecordUpdatesFU Response : " + getRecordUpdatesFU(rd.Metadata, vars));
+            System.out.println("\n\n7: getFlowFormulasFU Response : " + getFlowFormulasFU(rd.Metadata, vars));
+            System.out.println("\n\n8: getProcessMetadataValuesFromMDFU Response : " + getProcessMetadataValuesFromMDFU(rd.Metadata, vars));
+            System.out.println("\n\n9: setOfParsedChatterStringValues Response : " + setOfParsedChatterStringValues(rd.Metadata, vars));
+            
+            superReturn.addAll(HelloServlet.returnAllFields(rd.Metadata, vars));
+            
+            System.out.println("returnAllFields: " + HelloServlet.returnAllFields(rd.Metadata, vars));
         }
-        System.out.println("\n\n1: getActionCallsFU Response : " + getActionCallsFU(rawD.rawData.Metadata, vars));
-        System.out.println("\n\n2: getAssignmentsFU Response : " + getAssignmentsFU(rawD.rawData.Metadata, vars));
-        System.out.println("\n\n3: getDecisionsFU Response : " + getDecisionsFU(rawD.rawData.Metadata, vars));
-        System.out.println("\n\n4: getRecordCreatesFU Response : " + getRecordCreatesFU(rawD.rawData.Metadata, vars));
-        System.out.println("\n\n5: getRecordLookupsFU Response : " + getRecordLookupsFU(rawD.rawData.Metadata, vars));
-        System.out.println("\n\n6: getRecordUpdatesFU Response : " + getRecordUpdatesFU(rawD.rawData.Metadata, vars));
-        System.out.println("\n\n7: getFlowFormulasFU Response : " + getFlowFormulasFU(rawD.rawData.Metadata, vars));
-        System.out.println("\n\n8: getProcessMetadataValuesFromMDFU Response : " + getProcessMetadataValuesFromMDFU(rawD.rawData.Metadata, vars));
-        System.out.println("\n\n9: setOfParsedChatterStringValues Response : " + setOfParsedChatterStringValues(rawD.rawData.Metadata, vars));
+        System.out.println(superReturn.toString());
 //        String expression ="{!SecondValid_2.Name} .{!NotValid_2,Name }{!NotValid_2,Name {!SecondValid_7.Name} }{! NotValid_1.Name} {!NotValid_3.name__r.__c} {![FirstValid__c].Name__r.createdBy.Id}{!{!{!Valid_4.Name__c}}{!SecondValid_2.Name}{![ThirdValid].createdBy.Name}";
 //        expression = "{!SObject.Name} + .{![Account__c].Name}...{![Account2].Name}.. ...{!SObject} {![asddsa__c]} ..{!dsaasd} {!dsaasd2__c}";
 //        

@@ -62,15 +62,28 @@ public class HelloServlet extends HttpServlet {
         ResponseRawData rawD = new Gson().fromJson(bodyStr, ResponseRawData.class);
         
 //        resp.getWriter().append("\nResponse : " + rawD.rawData.Metadata.toString());
-        HashMap<String, String> vars = new HashMap<String, String>();
-        for (Variable var : rawD.rawData.Metadata.variables) {
-            if (StringUtils.isBlank(var.objectType)) { continue; }
-            vars.put(var.name, var.objectType);
-        }
+//        HashMap<String, String> vars = new HashMap<String, String>();
+//        for (Variable var : rawD.rawData.Metadata.variables) {
+//            if (StringUtils.isBlank(var.objectType)) { continue; }
+//            vars.put(var.name, var.objectType);
+//        }
         Set<String> result = new HashSet<>();
-        resp.getWriter().append(new Gson().toJson(returnAllFields(rawD.rawData.Metadata, vars)));
+//        resp.getWriter().append(new Gson().toJson(returnAllFields(rawD.rawData, vars)));
 //        resp.getWriter().append("\nResponse : " + vars.toString());
-//        resp.getWriter().append("\n\nResponse : " + Main.getActionCallsFU(rawD.rawData.Metadata, vars).toString());
+        Set<String> superReturn = new HashSet<>();
+        for (RawData rd : rawD.rawData) {
+            HashMap<String, String> vars = new HashMap<String, String>();
+            for (Variable var : rd.Metadata.variables) {
+                if (StringUtils.isBlank(var.objectType)) { continue; }
+                vars.put(var.name, var.objectType);
+            }
+            vars.forEach((k,v)->{
+                    System.out.println("\nkey: " + k + ", value: " + v);
+            }); 
+            superReturn.addAll(returnAllFields(rd.Metadata, vars));
+
+        }
+        resp.getWriter().append("\n\nResponse : " + superReturn.toString());
 
 //        String disterString = "{![Account].AccountNumber + '  ' + [Account].Name} Account.Name Account.notName {![Account].JigsawCompanyId2} + "
 //                + "{![Account].Name1} + [Account.Name] + Account. AccountNumber + [Account].Name  {![Account].Name}sd {zxc} [Account]. namz + Account.names + "
@@ -103,7 +116,7 @@ public class HelloServlet extends HttpServlet {
     }
     
     public class ResponseRawData {
-        public RawData rawData;
+        public ArrayList<RawData> rawData;
     }
 
     public class RawData {
@@ -129,7 +142,9 @@ public class HelloServlet extends HttpServlet {
     }
     
     public static String returnJsonString() throws IOException {
-        File f = new File("FlowJson.json");
+//        File f = new File("FlowJson.json");
+        File f = new File("RealFlow.json");
+//        File f = new File("volarisJson.json");
         FileReader fr = new FileReader(f);
         BufferedReader br = new BufferedReader(fr);
         String bodyLines = null;
