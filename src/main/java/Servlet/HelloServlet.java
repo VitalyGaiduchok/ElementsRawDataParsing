@@ -83,7 +83,7 @@ public class HelloServlet extends HttpServlet {
             superReturn.addAll(returnAllFields(rd.Metadata, vars));
 
         }
-        resp.getWriter().append("\nResponse : " + superReturn.toString() + '\n');
+        resp.getWriter().append(superReturn.toString());
 
 //        String disterString = "{![Account].AccountNumber + '  ' + [Account].Name} Account.Name Account.notName {![Account].JigsawCompanyId2} + "
 //                + "{![Account].Name1} + [Account.Name] + Account. AccountNumber + [Account].Name  {![Account].Name}sd {zxc} [Account]. namz + Account.names + "
