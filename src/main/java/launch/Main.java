@@ -146,10 +146,8 @@ public class Main {
         List<Object> decisions = (List<Object>) md.decisions;
         Set<String> res = new HashSet<>();
         if (decisions.isEmpty()) { return res; }
-        String rd = "";
         List<Object> allRules = new ArrayList<Object>();
         for (Object obj : decisions) {
-            
             Map<String, Object> item = (Map<String, Object>) obj;
             List<Object> rules = (List<Object>) item.get("rules");
             if (rules == null) { continue; }
@@ -161,6 +159,7 @@ public class Main {
         
         Set<String> elementReferences = new HashSet<String>();
         Set<String> stringValues = new HashSet<String>();
+        String rd = "";
         for (Object rule : allRules) {
             List<Object> conditions = (List<Object>) ((Map<String, Object>) rule).get("conditions");
             if (conditions == null) { continue; }
@@ -384,7 +383,7 @@ public class Main {
 //                }
 //            }
         }
-        return setOfParsedStringValues(res, stringValues, vars);
+        return setOfParsedFormulas(res, stringValues, vars);
     }
     
     public static Set<String> getProcessMetadataValuesFromMDFU(FlowMetadata md, HashMap<String, String> vars) {
@@ -426,7 +425,54 @@ public class Main {
         String exprssionForCasses = "((" + caseForObject1  + ")|(" + caseForObject2 + "))";
         String endOfExpression = "[}]";
 //        System.out.println(startOfExpression + exprssionForCasses + caseForField1 + caseForField2 + endOfExpression);
-        String stringValueRegex = startOfExpression + exprssionForCasses + caseForField1 + caseForField2 + endOfExpression;
+        String stringValueRegex = "((" + startOfExpression + exprssionForCasses + caseForField1 + caseForField2 + endOfExpression + ")|($Setup." + exprssionForCasses + caseForField1 + caseForField2 + "))";
+        Pattern p = Pattern.compile(stringValueRegex);
+        for (String sValue : stringValues) {
+            Matcher m = p.matcher(sValue);
+            while (m.find()) {
+                System.out.println("LINE 432: " + m.group() + ", length : " + m.group().length() + ", indexOf: " + m.group().indexOf("."));
+                if (m.group().indexOf(".") > 0) {
+                    String keyMatch = m.group().substring(2, m.group().indexOf("."));
+                    vars.forEach((k,v)->{
+                            if(!keyMatch.equals("") && keyMatch.equals(k)){
+        //                        System.out.println("key k: " + k);
+                                res.add(m.group().replace(k, v).replace("[", "").replace("]", "").replace("{!", "").replace("}", ""));
+                            }
+
+                    });
+                } else {
+                    String keyMatch =  m.group().substring(2, m.group().length()-1);
+                    vars.forEach((k,v)->{
+                            if(!keyMatch.equals("") && keyMatch.equals(k)){
+        //                        System.out.println("key k: " + k);
+                                res.add(m.group().replace(k, v).replace("[", "").replace("]", "").replace("{!", "").replace("}", ""));
+                            }
+                    });
+                }
+            }
+        }
+        return res;
+    }
+        
+    public static Set<String> setOfParsedFormulas(Set<String> res, Set<String> stringValues, HashMap<String, String> vars) {
+        System.out.println("HERE WE ARE 411: ");
+        System.out.println("res: " + res.toString());
+        System.out.println("stringValues: " + stringValues.toString());
+        System.out.println("vars: " + vars);
+        //For stringValue
+//        String firstSymbol = "[a-zA-Z]" + "([_]?[a-zA-Z0-9]+)*";
+//        String stringValueRegex = "[{]!(" + firstSymbol + ")" +  
+//                                  "([.]{1}" + firstSymbol + "([_]{2}[rR])?){0,8}([.]{1}" + firstSymbol + "([_]{2}[crCR])?)?[}]";
+        String startOfExpression = "[{]!";
+        String swlanmtoubl = "[a-zA-Z]" + "([_]?[a-zA-Z0-9]+)*";
+        String caseForObject1 = swlanmtoubl + "([_]{2}" + swlanmtoubl + "([_]{2}[crCR])?)?";
+        String caseForObject2 = "(\\u005B" + caseForObject1 + "([_]{2}[crCR])?\\u005D)";
+        String caseForField1 = "([.]{1}" + swlanmtoubl + "([_]{2}" + swlanmtoubl  + ")?([_]{2}[rR])?){0,8}";
+        String caseForField2 = "([.]{1}" + swlanmtoubl + "([_]{2}" + swlanmtoubl  + ")?([_]{2}[crCR])?)?";
+        String exprssionForCasses = "((" + caseForObject1  + ")|(" + caseForObject2 + "))";
+        String endOfExpression = "[}]";
+//        System.out.println(startOfExpression + exprssionForCasses + caseForField1 + caseForField2 + endOfExpression);
+        String stringValueRegex = "((" + startOfExpression + exprssionForCasses + caseForField1 + caseForField2 + endOfExpression + ")|($Setup." + exprssionForCasses + caseForField1 + caseForField2 + "))";
         Pattern p = Pattern.compile(stringValueRegex);
         for (String sValue : stringValues) {
             Matcher m = p.matcher(sValue);
