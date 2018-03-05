@@ -603,7 +603,7 @@ public class Main {
                         }
                     }
                 } else {
-                    keyMatch =  s.replace("$", "").substring(0, s.length()-1);
+                    keyMatch =  s.replace("$", "").substring(0, s.length());
                     for (String k : vars.keySet()) {
                         if(!keyMatch.equals("") && keyMatch.equals(k)){
     //                        System.out.println("key k: " + k);
@@ -772,9 +772,9 @@ public class Main {
                 if (StringUtils.isBlank(var.objectType)) { continue; }
                 vars.put(var.name, var.objectType);
             }
-//            vars.forEach((k,v)->{
-//                    System.out.println("key: " + k + ", value: " + v);
-//            });        
+            vars.forEach((k,v)->{
+                    System.out.println("key: " + k + ", value: " + v);
+            });        
 //            System.out.println("\n\n1: getActionCallsFU Response : " + getActionCallsFU(rd.Metadata, vars));
 //            System.out.println("\n\n2: getAssignmentsFU Response : " + getAssignmentsFU(rd.Metadata, vars));
 //            System.out.println("\n\n3: getDecisionsFU Response : " + getDecisionsFU(rd.Metadata, vars));
