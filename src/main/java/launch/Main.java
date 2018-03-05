@@ -7,6 +7,7 @@ import Servlet.HelloServlet.ResponseRawData;
 import Servlet.HelloServlet.Variable;
 import com.google.gson.Gson;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -78,6 +79,7 @@ public class Main {
                 }
             }
         }
+        System.out.println("actionsCalls: ");
         res = setOfParsedStringValues(res, stringValues, vars);
         return res;
     }
@@ -138,6 +140,7 @@ public class Main {
                 }
             }
         }
+        System.out.println("assignements: ");
         res = setOfParsedStringValues(res, stringValues, vars);
         return res;
     }
@@ -183,11 +186,12 @@ public class Main {
         for(String eR : elementReferences) {
             for (String key : vars.keySet()) {
                 if (eR.startsWith(key + ".") || eR.equals(key)) {  
-                    eR = eR.replace(key, vars.get(key));
+                    eR = eR.contains(".") ? eR.replace(key, vars.get(key)) : eR.replace(key, vars.get(key)) + ".Id";
                     res.add(eR);
                 }
             }
         }
+        System.out.println("decisions: ");
         res = setOfParsedStringValues(res, stringValues, vars);
         return res;
     }
@@ -264,6 +268,7 @@ public class Main {
                 }
             }
         }
+        System.out.println("recordUpdate: ");
         res = setOfParsedStringValues(res, stringValues, vars);
         return res;
     }
@@ -320,6 +325,7 @@ public class Main {
                 }
             }
         }
+        System.out.println("recordLookup: ");
         res = setOfParsedStringValues(res, stringValues, vars);
         return res;
     }
@@ -358,6 +364,7 @@ public class Main {
                 }
             }
         }
+        System.out.println("recordCreate: ");
         res = setOfParsedStringValues(res, stringValues, vars);
         return res;
     }
@@ -404,100 +411,225 @@ public class Main {
                 elementReferences.add(iValue.elementReference);
             }
         }
+        System.out.println("processMetadataValues: ");
         return setOfParsedStringValues(res, stringValues, vars);
     }
 
     public static Set<String> setOfParsedStringValues(Set<String> res, Set<String> stringValues, HashMap<String, String> vars) {
-        System.out.println("HERE WE ARE 411: ");
-        System.out.println("res: " + res.toString());
-        System.out.println("stringValues: " + stringValues.toString());
-        System.out.println("vars: " + vars);
+        System.out.println("setOfParsedStringValues: {");
+//        System.out.println("HERE WE ARE 411: ");
+//        System.out.println("res: " + res.toString());
+//        System.out.println("stringValues: " + stringValues.toString());
+//        System.out.println("vars: " + vars);
         //For stringValue
 //        String firstSymbol = "[a-zA-Z]" + "([_]?[a-zA-Z0-9]+)*";
 //        String stringValueRegex = "[{]!(" + firstSymbol + ")" +  
 //                                  "([.]{1}" + firstSymbol + "([_]{2}[rR])?){0,8}([.]{1}" + firstSymbol + "([_]{2}[crCR])?)?[}]";
-        String startOfExpression = "[{]!";
-        String swlanmtoubl = "[a-zA-Z]" + "([_]?[a-zA-Z0-9]+)*";
-        String caseForObject1 = swlanmtoubl + "([_]{2}" + swlanmtoubl + "([_]{2}[crCR])?)?";
-        String caseForObject2 = "(\\u005B" + caseForObject1 + "([_]{2}[crCR])?\\u005D)";
-        String caseForField1 = "([.]{1}" + swlanmtoubl + "([_]{2}" + swlanmtoubl  + ")?([_]{2}[rR])?){0,8}";
-        String caseForField2 = "([.]{1}" + swlanmtoubl + "([_]{2}" + swlanmtoubl  + ")?([_]{2}[crCR])?)?";
-        String exprssionForCasses = "((" + caseForObject1  + ")|(" + caseForObject2 + "))";
+//        String startOfExpression = "[{]!";
+//        String swlanmtoubl = "[a-zA-Z]" + "([_]?[a-zA-Z0-9]+)*";
+//        String caseForObject1 = swlanmtoubl + "([_]{2}" + swlanmtoubl + "([_]{2}[crCR])?)?";
+//        String caseForObject2 = "(\\u005B" + caseForObject1 + "([_]{2}[crCR])?\\u005D)";
+//        String caseForField1 = "([.]" + swlanmtoubl + "([_]{2}" + swlanmtoubl  + ")?([_]{2}[rR])?){0,8}";
+//        String caseForField2 = "([.]" + swlanmtoubl + "([_]{2}" + swlanmtoubl  + ")?([_]{2}[crCR])?)?";
+//        String exprssionForObjectCasses = "((" + caseForObject1  + ")|(" + caseForObject2 + "))";
+//        String endOfExpression = "[}]";
+        String startOfExpression = "[{]![$]?";
+        String swlanmtoubl = "[a-zA-Z]" + "(?!\\w*___\\w*)\\w*";
+        String caseForField1 = "([.]" + swlanmtoubl + ")*";
+        String caseForObject2 = "(\\u005B" + swlanmtoubl + "\\u005D)";
+        String exprssionForObjectCasses = "((" + swlanmtoubl + ")|(" + caseForObject2 + "))";
         String endOfExpression = "[}]";
+//        String stringValueRegexPart1 = startOfExpression + exprssionForObjectCasses + caseForField1 + caseForField2 + endOfExpression;
+        String stringValueRegexPart2 = "\\u0024Setup[.]" + exprssionForObjectCasses + caseForField1;
+        String middleExpressionForValueRegex = "(\\s)*" + exprssionForObjectCasses + caseForField1 + "(\\s)*";
+        String temporaryItem1 = "((('[^']*')|(\"[^\"]*\")|(" + exprssionForObjectCasses + caseForField1 + "))((\\s)*[+](\\s)*))*";
+        String temporaryItem2 = "(((\\s)*[+](\\s)*)(('[^']*')|(\"[^\"]*\")|(" + exprssionForObjectCasses + caseForField1 + ")))*";
+        String stringValueRegexPart3 = startOfExpression + "(\\s)*" + temporaryItem1 + "(" +
+                                       middleExpressionForValueRegex + ")" + temporaryItem2 + "(\\s)*" + endOfExpression;
+        String stringValueRegex = "((" + stringValueRegexPart2 +  ")|(" + stringValueRegexPart3 + "))";
 //        System.out.println(startOfExpression + exprssionForCasses + caseForField1 + caseForField2 + endOfExpression);
-        String stringValueRegex = "((" + startOfExpression + exprssionForCasses + caseForField1 + caseForField2 + endOfExpression + ")|($Setup." + exprssionForCasses + caseForField1 + caseForField2 + "))";
+//        String stringValueRegex = "((" + startOfExpression + exprssionForObjectCasses + caseForField1 + caseForField2 + endOfExpression + ")|($Setup." + exprssionForObjectCasses + caseForField1 + caseForField2 + "))";
+//        System.out.println("429: " + stringValueRegex);
         Pattern p = Pattern.compile(stringValueRegex);
+        Set<String> allMatches = new HashSet<>();
+        
         for (String sValue : stringValues) {
             Matcher m = p.matcher(sValue);
             while (m.find()) {
-                System.out.println("LINE 432: " + m.group() + ", length : " + m.group().length() + ", indexOf: " + m.group().indexOf("."));
-                if (m.group().indexOf(".") > 0) {
-                    String keyMatch = m.group().substring(2, m.group().indexOf("."));
-                    vars.forEach((k,v)->{
-                            if(!keyMatch.equals("") && keyMatch.equals(k)){
-        //                        System.out.println("key k: " + k);
-                                res.add(m.group().replace(k, v).replace("[", "").replace("]", "").replace("{!", "").replace("}", ""));
-                            }
-
-                    });
-                } else {
-                    String keyMatch =  m.group().substring(2, m.group().length()-1);
-                    vars.forEach((k,v)->{
-                            if(!keyMatch.equals("") && keyMatch.equals(k)){
-        //                        System.out.println("key k: " + k);
-                                res.add(m.group().replace(k, v).replace("[", "").replace("]", "").replace("{!", "").replace("}", ""));
-                            }
-                    });
-                }
+                allMatches.add(m.group());
             }
         }
+        
+        for (String m : allMatches) {
+        
+            String mKey = m.replaceAll("((\"[^\"]*\")|('[^']*')|([\\u005B\\u005D}{!]))", "").replace("+", " ");
+            for (String s : mKey.split(" ")) {
+                if (s.isEmpty()) { continue; }
+                System.out.println("         s: " + s);
+                Boolean isKeyMatch = false;
+                String keyMatch = s;
+                if (s.startsWith("$Setup.")) {
+                    keyMatch = s.replace("$Setup.", "");
+                    String resultItem = keyMatch.replaceAll(" ", "");
+                    if (!keyMatch.contains(".")) {
+                        resultItem = resultItem + ".Id";
+                    }
+                    res.add(resultItem);
+                    isKeyMatch = true;
+                    keyMatch = resultItem;
+                } else if (s.contains(".")) {
+                    keyMatch = s.replace("$", "").substring(0, s.indexOf("."));
+                    for (String k : vars.keySet()) {
+                            if(!keyMatch.equals("") && keyMatch.equals(k)){
+    //                        System.out.println("key k: " + k);
+                            String resultItem = s.replace(k, vars.get(k));
+                            resultItem = resultItem.replaceAll(" ", "");
+                            res.add(resultItem);
+                            isKeyMatch = true;
+                            keyMatch = resultItem;
+                            break;
+                        }
+                    }
+                } else {
+                    keyMatch =  s.replace("$", "").substring(0, s.length()-1);
+                    for (String k : vars.keySet()) {
+                        if(!keyMatch.equals("") && keyMatch.equals(k)){
+    //                        System.out.println("key k: " + k);
+                            String resultItem = s.replace(k, vars.get(k));
+                            resultItem = resultItem.replaceAll(" ", "") + ".Id";
+                            res.add(resultItem);
+                            isKeyMatch = true;
+                            keyMatch = resultItem;
+                            break;
+                        }
+                    }
+                }
+                if (!isKeyMatch) {
+                    keyMatch = s.replaceAll("[$\\s]", "");
+                    if (!keyMatch.contains(".")) {
+                        keyMatch += ".Id";
+                    }
+                    res.add(keyMatch);
+                }
+                System.out.println("resultItem: " + keyMatch);
+            }
+
+        }
+        System.out.println("}");
         return res;
     }
         
     public static Set<String> setOfParsedFormulas(Set<String> res, Set<String> stringValues, HashMap<String, String> vars) {
-        System.out.println("HERE WE ARE 411: ");
-        System.out.println("res: " + res.toString());
-        System.out.println("stringValues: " + stringValues.toString());
-        System.out.println("vars: " + vars);
-        //For stringValue
-//        String firstSymbol = "[a-zA-Z]" + "([_]?[a-zA-Z0-9]+)*";
-//        String stringValueRegex = "[{]!(" + firstSymbol + ")" +  
-//                                  "([.]{1}" + firstSymbol + "([_]{2}[rR])?){0,8}([.]{1}" + firstSymbol + "([_]{2}[crCR])?)?[}]";
-        String startOfExpression = "[{]!";
-        String swlanmtoubl = "[a-zA-Z]" + "([_]?[a-zA-Z0-9]+)*";
-        String caseForObject1 = swlanmtoubl + "([_]{2}" + swlanmtoubl + "([_]{2}[crCR])?)?";
-        String caseForObject2 = "(\\u005B" + caseForObject1 + "([_]{2}[crCR])?\\u005D)";
-        String caseForField1 = "([.]{1}" + swlanmtoubl + "([_]{2}" + swlanmtoubl  + ")?([_]{2}[rR])?){0,8}";
-        String caseForField2 = "([.]{1}" + swlanmtoubl + "([_]{2}" + swlanmtoubl  + ")?([_]{2}[crCR])?)?";
-        String exprssionForCasses = "((" + caseForObject1  + ")|(" + caseForObject2 + "))";
+        System.out.println("setOfParsedFormulas: {");
+        //For formula
+        
+        //good option, but very-very-very... slow
+        
+//        String startOfExpression = "[{]!";
+//        String swlanmtoubl = "[a-zA-Z]" + "([_]?[a-zA-Z0-9]+)*";
+//        String caseForObject1 = swlanmtoubl + "([_]{2}" + swlanmtoubl + "([_]{2}[cC])?)?";
+//        String caseForObject2 = "(\\u005B" + caseForObject1 + "\\u005D)";
+//        String caseForField1 = "([.]" + swlanmtoubl + "([_]{2}" + swlanmtoubl  + ")?([_]{2}[rR])?){0,8}";
+//        String caseForField2 = "([.]" + swlanmtoubl + "([_]{2}" + swlanmtoubl  + ")?([_]{2}[crCR])?)?";
+//        String exprssionForObjectCasses = "((" + caseForObject1  + ")|(" + caseForObject2 + "))";
+//        String endOfExpression = "[}]";
+////        String stringValueRegexPart1 = startOfExpression + exprssionForObjectCasses + caseForField1 + caseForField2 + endOfExpression;
+//        String stringValueRegexPart2 = "\\u0024Setup[.]" + exprssionForObjectCasses + caseForField1 + caseForField2;
+//        String middleExpressionForValueRegex = "(\\s)*" + exprssionForObjectCasses + caseForField1 + caseForField2 + "(\\s)*";
+//        String temporaryItem1 = "((('[^']*')|(\"[^\"]*\")|(" + exprssionForObjectCasses + caseForField1 + caseForField2 + "))((\\s)*[+](\\s)*))*";
+//        String temporaryItem2 = "(((\\s)*[+](\\s)*)(('[^']*')|(\"[^\"]*\")|(" + exprssionForObjectCasses + caseForField1 + caseForField2 + ")))*";
+//        String stringValueRegexPart3 = startOfExpression + "(\\s)*" + temporaryItem1 + "(" +
+//                                       middleExpressionForValueRegex + ")" + temporaryItem2 + "(\\s)*" + endOfExpression;
+//        String stringValueRegex = "((" + stringValueRegexPart2 +  ")|(" + stringValueRegexPart3 + "))";
+////        System.out.println("stringValueRegex" + stringValueRegex);
+        
+        //good option, but very-very-very... slow
+
+
+        String startOfExpression = "[{]![$]?";
+        String swlanmtoubl = "[a-zA-Z]" + "(?!\\w*___\\w*)\\w*";
+        String caseForField1 = "([.]" + swlanmtoubl + ")*";
+        String exprssionForObjectCasses = swlanmtoubl;
         String endOfExpression = "[}]";
-//        System.out.println(startOfExpression + exprssionForCasses + caseForField1 + caseForField2 + endOfExpression);
-        String stringValueRegex = "((" + startOfExpression + exprssionForCasses + caseForField1 + caseForField2 + endOfExpression + ")|($Setup." + exprssionForCasses + caseForField1 + caseForField2 + "))";
+//        String stringValueRegexPart1 = startOfExpression + exprssionForObjectCasses + caseForField1 + caseForField2 + endOfExpression;
+        String stringValueRegexPart2 = "\\u0024Setup[.]" + exprssionForObjectCasses + caseForField1;
+        String middleExpressionForValueRegex = "(\\s)*" + exprssionForObjectCasses + caseForField1 + "(\\s)*";
+        String temporaryItem1 = "((('[^']*')|(\"[^\"]*\")|(" + exprssionForObjectCasses + caseForField1 + "))((\\s)*[+](\\s)*))*";
+        String temporaryItem2 = "(((\\s)*[+](\\s)*)(('[^']*')|(\"[^\"]*\")|(" + exprssionForObjectCasses + caseForField1 + ")))*";
+        String stringValueRegexPart3 = startOfExpression + "(\\s)*" + temporaryItem1 + "(" +
+                                       middleExpressionForValueRegex + ")" + temporaryItem2 + "(\\s)*" + endOfExpression;
+        String stringValueRegex = "((" + stringValueRegexPart2 +  ")|(" + stringValueRegexPart3 + "))";
+//        System.out.println("stringValueRegex" + stringValueRegex);
+//        System.out.println("it's the final stringdown: " + stringValueRegex);
+
         Pattern p = Pattern.compile(stringValueRegex);
+        Set<String> allMatches = new HashSet<>();
+        
         for (String sValue : stringValues) {
             Matcher m = p.matcher(sValue);
             while (m.find()) {
-                System.out.println("LINE 432: " + m.group() + ", length : " + m.group().length() + ", indexOf: " + m.group().indexOf("."));
-                if (m.group().indexOf(".") > 0) {
-                    String keyMatch = m.group().substring(2, m.group().indexOf("."));
-                    vars.forEach((k,v)->{
-                            if(!keyMatch.equals("") && keyMatch.equals(k)){
-        //                        System.out.println("key k: " + k);
-                                res.add(m.group().replace(k, v).replace("[", "").replace("]", "").replace("{!", "").replace("}", ""));
-                            }
-
-                    });
-                } else {
-                    String keyMatch =  m.group().substring(2, m.group().length()-1);
-                    vars.forEach((k,v)->{
-                            if(!keyMatch.equals("") && keyMatch.equals(k)){
-        //                        System.out.println("key k: " + k);
-                                res.add(m.group().replace(k, v).replace("[", "").replace("]", "").replace("{!", "").replace("}", ""));
-                            }
-                    });
-                }
+                allMatches.add(m.group());
             }
         }
+        for (String m : allMatches) {
+        
+//            String mKey = m.replaceAll("'[^']*'", "").replaceAll("\"[^\"]*\"", "").replace("[", "").replace("]", "").replace("{!", "").replace("}", "").replace("+", " ");
+            String mKey = m.replaceAll("((\"[^\"]*\")|('[^']*')|([\\u005B\\u005D}{!]))", "").replace("+", " ");
+            for (String s : mKey.split(" ")) {
+                if (s.isEmpty()) { continue; }
+                System.out.println("         s: " + s);
+                Boolean isKeyMatch = false;
+                String keyMatch = s;
+                if (s.startsWith("$Setup.")) {
+                    keyMatch = s.replace("$Setup.", "");
+                    String resultItem = keyMatch.replaceAll(" ", "");
+                    if (!keyMatch.contains(".")) {
+                        resultItem = resultItem + ".Id";
+                    }
+                    res.add(resultItem);
+                    keyMatch = resultItem;
+                    isKeyMatch = true;
+                } else if (s.contains(".")) {
+                    keyMatch = s.replace("$", "").substring(0, s.indexOf("."));
+                    for (String k : vars.keySet()) {
+                            if(!keyMatch.equals("") && keyMatch.equals(k)){
+    //                        System.out.println("key k: " + k);
+                            String resultItem = s.replace(k, vars.get(k));
+                            resultItem = resultItem.replaceAll(" ", "");
+                            res.add(resultItem);
+                            isKeyMatch = true;
+                            keyMatch = resultItem;
+                            break;
+                        }
+                    }
+                } else {
+                    keyMatch =  s.replace("$", "").substring(0, s.length()-1);
+                    for (String k : vars.keySet()) {
+                        if(!keyMatch.equals("") && keyMatch.equals(k)){
+    //                        System.out.println("key k: " + k);
+                            String resultItem = s.replace(k, vars.get(k));
+                            resultItem = resultItem.replaceAll(" ", "") + ".Id";
+                            res.add(resultItem);
+                            isKeyMatch = true;
+                            keyMatch = resultItem;
+                            break;
+                        }
+                    }
+                }
+                if (!isKeyMatch) {
+//                    keyMatch = s.replaceAll(" ", "").replace("$", "");
+                    keyMatch = s.replaceAll("[$\\s]", "");
+                    if (!keyMatch.contains(".")) {
+                        keyMatch += ".Id";
+                    }                    
+                    res.add(keyMatch);
+                }
+                System.out.println("resultItem: " + keyMatch);
+            }
+            
+        }
+        System.out.println("}");
+//        System.out.println("((('[^']*')|(\"[^\"]*\")|(" + exprssionForObjectCasses + caseForField1 + caseForField2 + "))((\\s)*[+](\\s)*))*");
         return res;
     }
     
@@ -555,6 +687,8 @@ public class Main {
                 }
             }
         }
+        System.out.println("chatterStringValues: ");
+        if (true) { return setOfParsedStringValues(res, stringValues, vars);  }
         String startOfExpression = "[{]!";
         String swlanmtoubl = "[a-zA-Z]" + "([_]?[a-zA-Z0-9]+)*";
         String caseForObject1 = swlanmtoubl + "([_]{2}" + swlanmtoubl + "([_]{2}[crCR])?)?";
@@ -580,11 +714,15 @@ public class Main {
                     vars.forEach((k,v)->{
                             if(!keyMatch.equals("") && keyMatch.equals(k)){
         //                        System.out.println("key k: " + k);
-                                res.add(m.group().replace(k, v).replace("[", "").replace("]", "").replace("{!", "").replace("}", ""));
+                                String resultItem = m.group().replace(k, v).replace("[", "").replace("]", "").replace("{!", "").replace("}", "");
+                                resultItem = resultItem.startsWith("$Setup.") ? resultItem.replace("$Setup.", "") : resultItem;
+                                res.add(resultItem);
                             }
                             if(!valueMatch.equals("") && valueMatch.equals(v)){
         //                        System.out.println("value v: " + v);
-                                res.add(m.group().replace("[", "").replace("]", "").replace("{!", "").replace("}", ""));
+                                String resultItem = m.group().replace(k, v).replace("[", "").replace("]", "").replace("{!", "").replace("}", "");
+                                resultItem = resultItem.startsWith("$Setup.") ? resultItem.replace("$Setup.", "") : resultItem;
+                                res.add(resultItem);
                             }
                     });
                 } else {
@@ -594,11 +732,13 @@ public class Main {
                     vars.forEach((k,v)->{
                             if(!keyMatch.equals("") && keyMatch.equals(k)){
         //                        System.out.println("key k: " + k);
-                                res.add(m.group().replace(k, v).replace("[", "").replace("]", "").replace("{!", "").replace("}", ""));
+//                                res.add(m.group().replace(k, v).replace("[\\u005B\\u005D}{!]", "").replace("]", "").replace("{!", "").replace("}", ""));
+                                res.add(m.group().replace(k, v).replace("[\\u005B\\u005D}{!]", ""));
                             }
                             if(!valueMatch.equals("") && valueMatch.equals(v)){
         //                        System.out.println("value v: " + v);
-                                res.add(m.group().replace("[", "").replace("]", "").replace("{!", "").replace("}", ""));
+//                                res.add(m.group().replace("[", "").replace("]", "").replace("{!", "").replace("}", ""));
+                                res.add(m.group().replace("[\\u005B\\u005D}{!]", ""));
                             }
                     });
                 }
@@ -617,37 +757,48 @@ public class Main {
         
 //        System.out.println(HelloServlet.returnJsonString());
         String bodyStr = HelloServlet.returnJsonString();
+//        System.out.println(bodyStr);
         ResponseRawData rawD = new Gson().fromJson(bodyStr, ResponseRawData.class);
 //        System.out.println(rawD.toString());
 //        System.out.println(rawD.rawData.toString());
 //        System.out.println(rawD.rawData.Metadata.toString());
 //        System.out.println(rawD.rawData.Metadata.variables.toString());
         Set<String> superReturn = new HashSet<>();
+        int i = 1;
         for (RawData rd : rawD.rawData) {
-
+            System.out.println("\n" + (i++) + ":\nrd: " + new Gson().toJson(rd));
             HashMap<String, String> vars = new HashMap<String, String>();
             for (Variable var : rd.Metadata.variables) {
                 if (StringUtils.isBlank(var.objectType)) { continue; }
                 vars.put(var.name, var.objectType);
             }
-            vars.forEach((k,v)->{
-                    System.out.println("\nkey: " + k + ", value: " + v);
-            });        
-            System.out.println("\n\n1: getActionCallsFU Response : " + getActionCallsFU(rd.Metadata, vars));
-            System.out.println("\n\n2: getAssignmentsFU Response : " + getAssignmentsFU(rd.Metadata, vars));
-            System.out.println("\n\n3: getDecisionsFU Response : " + getDecisionsFU(rd.Metadata, vars));
-            System.out.println("\n\n4: getRecordCreatesFU Response : " + getRecordCreatesFU(rd.Metadata, vars));
-            System.out.println("\n\n5: getRecordLookupsFU Response : " + getRecordLookupsFU(rd.Metadata, vars));
-            System.out.println("\n\n6: getRecordUpdatesFU Response : " + getRecordUpdatesFU(rd.Metadata, vars));
-            System.out.println("\n\n7: getFlowFormulasFU Response : " + getFlowFormulasFU(rd.Metadata, vars));
-            System.out.println("\n\n8: getProcessMetadataValuesFromMDFU Response : " + getProcessMetadataValuesFromMDFU(rd.Metadata, vars));
-            System.out.println("\n\n9: setOfParsedChatterStringValues Response : " + setOfParsedChatterStringValues(rd.Metadata, vars));
+//            vars.forEach((k,v)->{
+//                    System.out.println("key: " + k + ", value: " + v);
+//            });        
+//            System.out.println("\n\n1: getActionCallsFU Response : " + getActionCallsFU(rd.Metadata, vars));
+//            System.out.println("\n\n2: getAssignmentsFU Response : " + getAssignmentsFU(rd.Metadata, vars));
+//            System.out.println("\n\n3: getDecisionsFU Response : " + getDecisionsFU(rd.Metadata, vars));
+//            System.out.println("\n\n4: getRecordCreatesFU Response : " + getRecordCreatesFU(rd.Metadata, vars));
+//            System.out.println("\n\n5: getRecordLookupsFU Response : " + getRecordLookupsFU(rd.Metadata, vars));
+//            System.out.println("\n\n6: getRecordUpdatesFU Response : " + getRecordUpdatesFU(rd.Metadata, vars));
+//            System.out.println("7: getFlowFormulasFU Response : " + getFlowFormulasFU(rd.Metadata, vars).toString() + "\n\n");
+//            System.out.println("\n\n8: getProcessMetadataValuesFromMDFU Response : " + getProcessMetadataValuesFromMDFU(rd.Metadata, vars));
+//            System.out.println("\n\n9: setOfParsedChatterStringValues Response : " + setOfParsedChatterStringValues(rd.Metadata, vars));
             
             superReturn.addAll(HelloServlet.returnAllFields(rd.Metadata, vars));
             
-            System.out.println("returnAllFields: " + HelloServlet.returnAllFields(rd.Metadata, vars));
+//            System.out.println("returnAllFields: " + HelloServlet.returnAllFields(rd.Metadata, vars));
+            
+//            String m = "{!Name + \"vcflsdakf\" + 'vxc{!name}' + name2}";
+//            String mKey = m.replaceAll("'[^']*'", "").replaceAll("\"[^\"]*\"", "").replace("[", "").replace("]", "").replace("{!", "").replace("}", "").replace("+", " ").trim();
+//            String[] mList = mKey.split(" ");
+//            for (String s : mList) {
+//                if (s.isEmpty()) { continue; }
+//                System.out.println("s: " + s);
+//            }
+            
         }
-        System.out.println(superReturn.toString());
+        System.out.println("\n\nsuperReturn: " + new Gson().toJson(superReturn));
 //        String expression ="{!SecondValid_2.Name} .{!NotValid_2,Name }{!NotValid_2,Name {!SecondValid_7.Name} }{! NotValid_1.Name} {!NotValid_3.name__r.__c} {![FirstValid__c].Name__r.createdBy.Id}{!{!{!Valid_4.Name__c}}{!SecondValid_2.Name}{![ThirdValid].createdBy.Name}";
 //        expression = "{!SObject.Name} + .{![Account__c].Name}...{![Account2].Name}.. ...{!SObject} {![asddsa__c]} ..{!dsaasd} {!dsaasd2__c}";
 //        

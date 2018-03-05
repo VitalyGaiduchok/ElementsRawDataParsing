@@ -74,8 +74,11 @@ public class HelloServlet extends HttpServlet {
         for (RawData rd : rawD.rawData) {
             HashMap<String, String> vars = new HashMap<String, String>();
             for (Variable var : rd.Metadata.variables) {
-                if (StringUtils.isBlank(var.objectType)) { continue; }
-                vars.put(var.name, var.objectType);
+                if (StringUtils.isBlank(var.objectType)) { 
+                    vars.put(var.name, "Without Object Type");
+                } else {
+                    vars.put(var.name, var.objectType);
+                }
             }
             vars.forEach((k,v)->{
                     System.out.println("\nkey: " + k + ", value: " + v);
