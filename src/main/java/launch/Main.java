@@ -180,14 +180,16 @@ public class Main {
             }
             
         }
-        for(String eR : elementReferences) {
+        elementReferences.forEach((eR) -> {
             for (String key : vars.keySet()) {
                 if (eR.startsWith(key + ".") || eR.equals(key)) {  
-                    eR = eR.contains(".") ? eR.replace(key, vars.get(key)) : eR.replace(key, vars.get(key)) + ".Id";
+                    eR = eR.replace(key, vars.get(key)) + (eR.contains(".") ? "" : ".Id");
+                    System.out.println("eR: " + eR);
                     res.add(eR);
+                    break;
                 }
             }
-        }
+        });
         System.out.println("decisions: ");
         return setOfParsedStringValues(res, stringValues, vars);
     }
@@ -351,9 +353,11 @@ public class Main {
         }
         elementReferences.forEach((eR) -> {
             for (String key : vars.keySet()) {
-                if (eR.startsWith(key)) {  
+                if (eR.startsWith(key + ".") || eR.equals(key)) {  
                     eR = eR.replace(key, vars.get(key)) + (eR.contains(".") ? "" : ".Id");
+                    System.out.println("eR: " + eR);
                     res.add(eR);
+                    break;
                 }
             }
         });
@@ -405,9 +409,11 @@ public class Main {
         
         elementReferences.forEach((eR) -> {
             for (String key : vars.keySet()) {
-                if (eR.startsWith(key)) {  
+                if (eR.startsWith(key + ".") || eR.equals(key)) {  
                     eR = eR.replace(key, vars.get(key)) + (eR.contains(".") ? "" : ".Id");
+                    System.out.println("eR: " + eR);
                     res.add(eR);
+                    break;
                 }
             }
         });
@@ -439,24 +445,25 @@ public class Main {
                 allMatches.add(m.group());
             }
         });
-        
         allMatches.stream().map((m) -> m.replaceAll("[}{!]", "")).map((mKey) -> {
-            System.out.println("         s: " + mKey);
             return mKey; 
         }).forEachOrdered((mKey) -> {
             String keyMatch = mKey;
+            String resultItem = "";
             if (mKey.contains(".")) {
                 keyMatch = mKey.substring(0, mKey.indexOf("."));
                 if (vars.containsKey(keyMatch)) {
-                    String resultItem = mKey.replaceFirst(keyMatch, vars.get(keyMatch));
+                    resultItem = mKey.replaceFirst(keyMatch, vars.get(keyMatch));
                     res.add(resultItem);
                 }
             } else {
                 if (vars.containsKey(mKey)) {
-                    String resultItem = mKey.replaceFirst(mKey, vars.get(mKey)) + ".Id";;
+                    resultItem = mKey.replaceFirst(mKey, vars.get(mKey)) + ".Id";;
                     res.add(resultItem);
                 }
             }
+            System.out.println("         s: " + mKey);
+            System.out.println("resultItem: " + resultItem);
         });
         System.out.println("}");
         return res;
@@ -491,7 +498,6 @@ public class Main {
                 {
                     for (String s : mKey.split(" ")) {
                         if (s.isEmpty()) { continue; }
-                        System.out.println("         s: " + s.replaceFirst("[$]", ""));
                         Boolean isKeyMatch = false;
                         String keyMatch = s;
                         if (s.startsWith("$Setup.")) {
@@ -524,9 +530,10 @@ public class Main {
                         }
                         if (!isKeyMatch) {
 //                          keyMatch = s.replaceAll(" ", "").replace("$", "");
-                            keyMatch = s.replaceAll("[$\\s]", "") + (keyMatch.contains(".") ? "" : ".Id");
+                            keyMatch = s.replaceAll("(([$])|())", "") + (keyMatch.contains(".") ? "" : ".Id");
                             res.add(keyMatch);
                         }
+                        System.out.println("         s: " + s.replaceFirst("[$]", ""));
                         System.out.println("resultItem: " + keyMatch);
                     }
         });
@@ -584,15 +591,16 @@ public class Main {
                                     });
                                 }
         }
-        for(String eR : elementReferences) {
+        elementReferences.forEach((eR) -> {
             for (String key : vars.keySet()) {
-                if (eR.startsWith(key)) {  
+                if (eR.startsWith(key + ".") || eR.equals(key)) {  
                     eR = eR.replace(key, vars.get(key)) + (eR.contains(".") ? "" : ".Id");
+                    System.out.println("eR: " + eR);
                     res.add(eR);
                     break;
                 }
             }
-        }
+        });
         System.out.println("chatterStringValues:\nsetOfParsedStringValues: { ");
         String startOfExpression = "[{]!";
         
@@ -606,7 +614,7 @@ public class Main {
         String exprssionForObjectCasses = "((" + swlanmtoubl1 + caseForField1 +  ")|(" + caseForObject2 + caseForField2 + "))";
         String endOfExpression = "[}]";
         String stringValueRegex =  startOfExpression + exprssionForObjectCasses + endOfExpression;
-        System.out.println("stringChatterValueRegex: " + stringValueRegex);
+//        System.out.println("stringChatterValueRegex: " + stringValueRegex);
         Pattern p = Pattern.compile(stringValueRegex);
         Set<String> allMatches = new HashSet<>();
         stringValues.stream().map((sValue) -> p.matcher(sValue)).forEachOrdered((m) -> {
@@ -620,21 +628,23 @@ public class Main {
             return mKey; 
         }).forEachOrdered((mKey) -> {
             String keyMatch = mKey;
+            String resultItem = "";
             if (mKey.contains("[")) {
-                keyMatch = mKey.replaceAll("[\\u005B\\u005D]", "");
-                res.add(keyMatch);
+                resultItem  = mKey.replaceAll("[\\u005B\\u005D]", "");
+                res.add(resultItem);
             } else if (mKey.contains(".")) {
                 keyMatch = mKey.substring(0, mKey.indexOf("."));
                 if(vars.containsKey(keyMatch)) {
-                    String resultItem = mKey.replaceFirst(keyMatch, vars.get(keyMatch));
+                    resultItem = mKey.replaceFirst(keyMatch, vars.get(keyMatch));
                     res.add(resultItem);
                 }
             } else {
                 if(vars.containsKey(keyMatch)) {
-                    String resultItem = mKey.replaceFirst(keyMatch, vars.get(keyMatch)) + ".Id";
+                    resultItem = mKey.replaceFirst(keyMatch, vars.get(keyMatch)) + ".Id";
                     res.add(resultItem);
                 }
             }
+            System.out.println("resultItem: " + resultItem);
         });
         System.out.println("}");
         return res;
@@ -662,7 +672,11 @@ public class Main {
             System.out.println("\n" + (i++) + ":\nrd: " + new Gson().toJson(rd));
             HashMap<String, String> vars = new HashMap<String, String>();
             rd.Metadata.variables.stream().filter((var) -> !(StringUtils.isBlank(var.objectType))).forEachOrdered((var) -> {
-                vars.put(var.name, var.objectType);
+                if (StringUtils.isBlank(var.objectType)) { 
+                    vars.put(var.name, "Without Object Type");
+                } else {
+                    vars.put(var.name, var.objectType);
+                }
             });
             vars.forEach((k,v)->{
                     System.out.println("key: " + k + ", value: " + v);
