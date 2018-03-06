@@ -37,38 +37,36 @@ public class Main {
             if (item.get("actionType").toString().equals("chatterPost")) { continue; }
             List<Object> processMetadataValue = (ArrayList<Object>) item.get("processMetadataValues");
             if (processMetadataValue != null) {
-                for (Object pmv : processMetadataValue) {
-                    HashMap<String, Object> pmvMap = (HashMap<String, Object>) new Gson().fromJson(new Gson().toJson(pmv), HashMap.class);
-                    if (pmvMap.get("value") == null) { continue; }
-                    ItemValue iValue = (ItemValue) new Gson().fromJson(new Gson().toJson(pmvMap.get("value")), ItemValue.class);
-                    if (iValue != null) {
-                        if (!StringUtils.isBlank(iValue.stringValue)) {
-                            stringValues.add(iValue.stringValue);
-                        }
-                        if (!StringUtils.isBlank(iValue.elementReference)) {
-                            elementReferences.add(iValue.elementReference);
-                        }
-                    }
-                } 
-            }
-            
+                processMetadataValue.stream().map((pmv) -> 
+                        (HashMap<String, Object>) new Gson().fromJson(new Gson().toJson(pmv), HashMap.class)).filter((pmvMap) -> 
+                                !(pmvMap.get("value") == null)).map((pmvMap) -> 
+                                        (ItemValue) new Gson().fromJson(new Gson().toJson(pmvMap.get("value")), ItemValue.class)).filter((iValue) -> 
+                                                (iValue != null)).map((iValue) -> 
+                                                {
+                                                    if (!StringUtils.isBlank(iValue.stringValue)) {
+                                                        stringValues.add(iValue.stringValue);
+                                                    }
+                                                    return iValue; 
+                                                }).filter((iValue) -> (!StringUtils.isBlank(iValue.elementReference))).forEachOrdered((iValue) -> {
+                                                    elementReferences.add(iValue.elementReference);
+                                                });
+                                            }
             List<Object> inputParameters = (ArrayList<Object>) item.get("inputParameters");
             if (inputParameters != null) {
-                for (Object pmv : inputParameters) {
-                    HashMap<String, Object> pmvMap = (HashMap<String, Object>) new Gson().fromJson(new Gson().toJson(pmv), HashMap.class);
-                    if (pmvMap.get("value") == null) { continue; }
-                    ItemValue iValue = (ItemValue) new Gson().fromJson(new Gson().toJson(pmvMap.get("value")), ItemValue.class);
-                    if (iValue != null) {
-                        if (!StringUtils.isBlank(iValue.stringValue)) {
-                            stringValues.add(iValue.stringValue);
-                        }
-                        if (!StringUtils.isBlank(iValue.elementReference)) {
-                            elementReferences.add(iValue.elementReference);
-                        }
-                    }
-                }
-            }
-            
+                inputParameters.stream().map((pmv) -> 
+                        (HashMap<String, Object>) new Gson().fromJson(new Gson().toJson(pmv), HashMap.class)).filter((pmvMap) -> 
+                                !(pmvMap.get("value") == null)).map((pmvMap) -> 
+                                        (ItemValue) new Gson().fromJson(new Gson().toJson(pmvMap.get("value")), ItemValue.class)).filter((iValue) -> 
+                                                (iValue != null)).map((iValue) -> 
+                                                {
+                                                    if (!StringUtils.isBlank(iValue.stringValue)) {
+                                                        stringValues.add(iValue.stringValue);
+                                                    }
+                                                    return iValue;
+                                                }).filter((iValue) -> (!StringUtils.isBlank(iValue.elementReference))).forEachOrdered((iValue) -> {
+                                                    elementReferences.add(iValue.elementReference);
+                                                });
+                                            }
         }
         for(String eR : elementReferences) {
             for (String key : vars.keySet()) {
@@ -89,48 +87,45 @@ public class Main {
         Set<String> res = new HashSet<>();
         if (assignments.isEmpty()) { return res; }
         String rd = "";
-        List<Object> assignmentItems = new ArrayList<Object>();
-        for (Object obj : assignments) { 
-            Map<String, Object> item = (Map<String, Object>) obj;
+        List<Object> assignmentItems = new ArrayList<>();
+        assignments.stream().map((obj) -> (Map<String, Object>) obj).forEachOrdered((item) -> {
             assignmentItems.add(item.get("assignmentItems"));
-        }
-        List<Object> allItems = new ArrayList<Object>();
-        for (Object obj : assignmentItems) { 
+        });
+        List<Object> allItems = new ArrayList<>();
+        assignmentItems.forEach((obj) -> { 
             for (Object item : (List<Object>) obj) {
                 allItems.add(item);
             }
-        }
-        Set<String> elementReferences = new HashSet<String>();
-        Set<String> stringValues = new HashSet<String>();
-        for (Object obj : allItems) {
-            Map<String, Object> item = (Map<String, Object>) obj;
+        });
+        Set<String> elementReferences = new HashSet<>();
+        Set<String> stringValues = new HashSet<>();
+        allItems.stream().map((obj) -> (Map<String, Object>) obj).forEachOrdered((item) -> {
             List<Object> processMetadataValue = (List<Object>) item.get("processMetadataValues");
             if (processMetadataValue != null) {
-                for (Object pmv : processMetadataValue) {
-                    if (((Map<String, Object>) pmv).get("value") == null) continue;
-                    ItemValue iValue = (ItemValue) new Gson().fromJson(new Gson().toJson(((Map<String, Object>) pmv).get("value")), ItemValue.class);
-                    if (iValue != null) {
-                        if (!StringUtils.isBlank(iValue.stringValue)) {
-                            stringValues.add(iValue.stringValue);
-                        }
-                        if (!StringUtils.isBlank(iValue.elementReference)) {
-                            elementReferences.add(iValue.elementReference);
-                        }
+                processMetadataValue.stream().filter((pmv) -> 
+                        !(((Map<String, Object>) pmv).get("value") == null)).map((pmv) -> 
+                                (ItemValue) new Gson().fromJson(new Gson().toJson(((Map<String, Object>) pmv).get("value")), ItemValue.class)).filter((iValue) -> 
+                                        (iValue != null)).map((iValue) -> 
+                                        {
+                                            if (!StringUtils.isBlank(iValue.stringValue)) {
+                                                stringValues.add(iValue.stringValue);
+                                            }
+                                            return iValue; 
+                                        }).filter((iValue) -> (!StringUtils.isBlank(iValue.elementReference))).forEachOrdered((iValue) -> {
+                                            elementReferences.add(iValue.elementReference);
+                                        });
+                                    }
+            if (!(item.get("value") == null)) {
+                ItemValue iValue = (ItemValue) new Gson().fromJson(new Gson().toJson(item.get("value")), ItemValue.class);
+                if (iValue != null) {
+                    if (!StringUtils.isBlank(iValue.stringValue)) {
+                        stringValues.add(iValue.stringValue);
+                    }   if (!StringUtils.isBlank(iValue.elementReference)) {
+                        elementReferences.add(iValue.elementReference);
                     }
-                } 
-            }
-            if (item.get("value") == null) { continue; }
-            ItemValue iValue = (ItemValue) new Gson().fromJson(new Gson().toJson(item.get("value")), ItemValue.class);
-            if (iValue != null) {
-                if (!StringUtils.isBlank(iValue.stringValue)) {
-                    stringValues.add(iValue.stringValue);
-                }
-                if (!StringUtils.isBlank(iValue.elementReference)) {
-                    elementReferences.add(iValue.elementReference);
                 }
             }
-            
-        }
+        });
         for(String eR : elementReferences) {
             for (String key : vars.keySet()) {
                 if (eR.startsWith(key + ".") || eR.equals(key)) {  
@@ -149,28 +144,23 @@ public class Main {
         List<Object> decisions = (List<Object>) md.decisions;
         Set<String> res = new HashSet<>();
         if (decisions.isEmpty()) { return res; }
-        List<Object> allRules = new ArrayList<Object>();
-        for (Object obj : decisions) {
-            Map<String, Object> item = (Map<String, Object>) obj;
-            List<Object> rules = (List<Object>) item.get("rules");
-            if (rules == null) { continue; }
-            for (Object rule : rules) {
-                allRules.add(rule); 
-            }
-        }
+        List<Object> allRules = new ArrayList<>();
+        decisions.stream().map((obj) -> (Map<String, Object>) obj).map((item) -> (List<Object>) item.get("rules")).filter((rules) -> !(rules == null)).forEachOrdered((rules) -> {
+            rules.forEach((rule) -> {
+                allRules.add(rule);
+            });
+        });
         if (allRules.isEmpty()) { return res; }
         
-        Set<String> elementReferences = new HashSet<String>();
-        Set<String> stringValues = new HashSet<String>();
-        String rd = "";
+        Set<String> elementReferences = new HashSet<>();
+        Set<String> stringValues = new HashSet<>();
         for (Object rule : allRules) {
             List<Object> conditions = (List<Object>) ((Map<String, Object>) rule).get("conditions");
             if (conditions == null) { continue; }
             
             for (Object condition : conditions) {
                 Map<String, Object> conditionMap = (Map<String, Object>) condition;
-                rd = conditionMap.get("leftValueReference").toString();
-                elementReferences.add(rd);
+                elementReferences.add(conditionMap.get("leftValueReference").toString());
                 ItemValue iValue = (ItemValue) new Gson().fromJson(new Gson().toJson(conditionMap.get("rightValue")), ItemValue.class);
                 if (iValue != null) {
                     if (!StringUtils.isBlank(iValue.stringValue)) {
@@ -192,17 +182,16 @@ public class Main {
             }
         }
         System.out.println("decisions: ");
-        res = setOfParsedStringValues(res, stringValues, vars);
-        return res;
+        return setOfParsedStringValues(res, stringValues, vars);
     }
     
     public static Set<String> getRecordUpdatesFU(FlowMetadata md, HashMap<String, String> vars) {
         List<Object> recordUpdates = md.recordUpdates;
         Set<String> res = new HashSet<>();
         if (recordUpdates.isEmpty()) { return res; }
-        String recordUpdateRD = "";
-        Set<String> elementReferences = new HashSet<String>();
-        Set<String> stringValues = new HashSet<String>();
+        String recordUpdateRD;
+        Set<String> elementReferences = new HashSet<>();
+        Set<String> stringValues = new HashSet<>();
         for (Object obj : recordUpdates) {
             Map<String, Object> item = (Map<String, Object>) obj;
             String objectName = "" + item.get("object");
@@ -245,20 +234,19 @@ public class Main {
             
             List<Object> processMetadataValue = (List<Object>) item.get("processMetadataValues");
             if (processMetadataValue != null) {
-                for (Object pmv : processMetadataValue) {
-                    if (((Map<String, Object>) pmv).get("value") == null) continue;
-                    ItemValue iValue = (ItemValue) new Gson().fromJson(new Gson().toJson(((Map<String, Object>) pmv).get("value")), ItemValue.class);
-                    if (iValue != null) {
-                        if (!StringUtils.isBlank(iValue.stringValue)) {
-                            stringValues.add(iValue.stringValue);
-                        }
-                        if (!StringUtils.isBlank(iValue.elementReference)) {
-                            elementReferences.add(iValue.elementReference);
-                        }
-                    }
-                } 
-            }
-            
+                processMetadataValue.stream().filter((pmv) -> 
+                        !(((Map<String, Object>) pmv).get("value") == null)).map((pmv) -> 
+                                (ItemValue) new Gson().fromJson(new Gson().toJson(((Map<String, Object>) pmv).get("value")), ItemValue.class)).filter((iValue) -> 
+                                        (iValue != null)).map((iValue) -> 
+                                        {
+                                            if (!StringUtils.isBlank(iValue.stringValue)) {
+                                                stringValues.add(iValue.stringValue);
+                                            }
+                                            return iValue; 
+                                        }).filter((iValue) -> (!StringUtils.isBlank(iValue.elementReference))).forEachOrdered((iValue) -> {
+                                            elementReferences.add(iValue.elementReference);
+                                        });
+                                    }
         }
         for(String eR : elementReferences) {
             for (String key : vars.keySet()) {
@@ -269,8 +257,7 @@ public class Main {
             }
         }
         System.out.println("recordUpdate: ");
-        res = setOfParsedStringValues(res, stringValues, vars);
-        return res;
+        return setOfParsedStringValues(res, stringValues, vars);
     }
     
     public static Set<String> getRecordLookupsFU(FlowMetadata md, HashMap<String, String> vars) {
@@ -278,8 +265,8 @@ public class Main {
         Set<String> res = new HashSet<>();
         if (recordLookups.isEmpty()) { return res; }
         String recordLookupRD = "";
-        Set<String> elementReferences = new HashSet<String>();
-        Set<String> stringValues = new HashSet<String>();
+        Set<String> elementReferences = new HashSet<>();
+        Set<String> stringValues = new HashSet<>();
         for (Object obj : recordLookups) {
             Map<String, Object> item = (Map<String, Object>) obj;
             String objectName = "" + item.get("object");
@@ -326,17 +313,16 @@ public class Main {
             }
         }
         System.out.println("recordLookup: ");
-        res = setOfParsedStringValues(res, stringValues, vars);
-        return res;
+        return setOfParsedStringValues(res, stringValues, vars);
     }
     
     public static Set<String> getRecordCreatesFU(FlowMetadata md, HashMap<String, String> vars) {
         List<Object> recordCreates = (List<Object>) md.recordCreates;
         Set<String> res = new HashSet<>();
         if (recordCreates.isEmpty()) { return res; }
-        String recordCreateRD = "";
-        Set<String> elementReferences = new HashSet<String>();
-        Set<String> stringValues = new HashSet<String>();
+        String recordCreateRD;
+        Set<String> elementReferences = new HashSet<>();
+        Set<String> stringValues = new HashSet<>();
         for (Object obj : recordCreates) {
             Map<String, Object> item = (Map<String, Object>) obj;
             String objectName = "" + item.get("object");
@@ -356,17 +342,16 @@ public class Main {
                 } 
             }
         }
-        for(String eR : elementReferences) {
+        elementReferences.forEach((eR) -> {
             for (String key : vars.keySet()) {
-                if (eR.startsWith(key + ".") || eR.equals(key)) {  
-                    eR = eR.replace(key, vars.get(key));
+                if (eR.startsWith(key)) {  
+                    eR = eR.replace(key, vars.get(key)) + (eR.contains(".") ? "" : ".Id");
                     res.add(eR);
                 }
             }
-        }
+        });
         System.out.println("recordCreate: ");
-        res = setOfParsedStringValues(res, stringValues, vars);
-        return res;
+        return setOfParsedStringValues(res, stringValues, vars);
     }
     
     public static Set<String> getFlowFormulasFU(FlowMetadata md, HashMap<String, String> vars) {
@@ -374,10 +359,8 @@ public class Main {
         Set<String> res = new HashSet<>();
         if (formulas.isEmpty()) { return res; }
         
-        Set<String> stringValues = new HashSet<String>();
-        for (Object obj : formulas) {
-            Map<String, Object> item = (Map<String, Object>) obj;
-            String expression = "" + item.get("expression");
+        Set<String> stringValues = new HashSet<>();
+        formulas.stream().map((obj) -> (Map<String, Object>) obj).map((item) -> "" + item.get("expression")).forEachOrdered((expression) -> {
             stringValues.add(expression);
 //            List<Object> objs = (List<Object>) item.get("processMetadataValues");
 //            if (objs != null) {
@@ -389,7 +372,7 @@ public class Main {
 //                    }
 //                }
 //            }
-        }
+        });
         return setOfParsedFormulas(res, stringValues, vars);
     }
     
@@ -398,122 +381,74 @@ public class Main {
         Set<String> res = new HashSet<>();
         if (processMetadataValues.isEmpty()) { return res; }
         
-        Set<String> stringValues = new HashSet<String>();
-        Set<String> elementReferences = new HashSet<String>();
-        for (Object obj : processMetadataValues) {
-            Map<String, Object> item = (Map<String, Object>) obj;
-            if (((Map<String, Object>) item).get("value") == null) { continue; }
-            ItemValue iValue = (ItemValue) new Gson().fromJson(new Gson().toJson(((Map<String, Object>) item).get("value")), ItemValue.class);
-            if (!StringUtils.isBlank(iValue.stringValue)) {
-                stringValues.add(iValue.stringValue);
+        Set<String> stringValues = new HashSet<>();
+        Set<String> elementReferences = new HashSet<>();
+        processMetadataValues.stream().map((obj) -> 
+                (Map<String, Object>) obj).filter((item) -> 
+                        !(((Map<String, Object>) item).get("value") == null)).map((item) -> 
+                                (ItemValue) new Gson().fromJson(new Gson().toJson(((Map<String, Object>) item).get("value")), ItemValue.class)).map((iValue) -> 
+                                {
+                                    if (!StringUtils.isBlank(iValue.stringValue)) {
+                                        stringValues.add(iValue.stringValue);
+                                    }
+                                    return iValue;
+                                }).filter((iValue) -> (!StringUtils.isBlank(iValue.elementReference))).forEachOrdered((iValue) -> {
+                                    elementReferences.add(iValue.elementReference);
+                                });
+        
+        elementReferences.forEach((eR) -> {
+            for (String key : vars.keySet()) {
+                if (eR.startsWith(key)) {  
+                    eR = eR.replace(key, vars.get(key)) + (eR.contains(".") ? "" : ".Id");
+                    res.add(eR);
+                }
             }
-            if (!StringUtils.isBlank(iValue.elementReference)) {
-                elementReferences.add(iValue.elementReference);
-            }
-        }
+        });
+        
         System.out.println("processMetadataValues: ");
         return setOfParsedStringValues(res, stringValues, vars);
     }
 
+    /**
+     * Not Chatter String Values support only expression like {!SObject.Name} where SObject is key in map(vars)
+     * All other cases like {![Account].Name} or {! SObject.Name} don't have any affects on expression it will be only strings.
+    */
     public static Set<String> setOfParsedStringValues(Set<String> res, Set<String> stringValues, HashMap<String, String> vars) {
         System.out.println("setOfParsedStringValues: {");
-//        System.out.println("HERE WE ARE 411: ");
-//        System.out.println("res: " + res.toString());
-//        System.out.println("stringValues: " + stringValues.toString());
-//        System.out.println("vars: " + vars);
-        //For stringValue
-//        String firstSymbol = "[a-zA-Z]" + "([_]?[a-zA-Z0-9]+)*";
-//        String stringValueRegex = "[{]!(" + firstSymbol + ")" +  
-//                                  "([.]{1}" + firstSymbol + "([_]{2}[rR])?){0,8}([.]{1}" + firstSymbol + "([_]{2}[crCR])?)?[}]";
-//        String startOfExpression = "[{]!";
-//        String swlanmtoubl = "[a-zA-Z]" + "([_]?[a-zA-Z0-9]+)*";
-//        String caseForObject1 = swlanmtoubl + "([_]{2}" + swlanmtoubl + "([_]{2}[crCR])?)?";
-//        String caseForObject2 = "(\\u005B" + caseForObject1 + "([_]{2}[crCR])?\\u005D)";
-//        String caseForField1 = "([.]" + swlanmtoubl + "([_]{2}" + swlanmtoubl  + ")?([_]{2}[rR])?){0,8}";
-//        String caseForField2 = "([.]" + swlanmtoubl + "([_]{2}" + swlanmtoubl  + ")?([_]{2}[crCR])?)?";
-//        String exprssionForObjectCasses = "((" + caseForObject1  + ")|(" + caseForObject2 + "))";
-//        String endOfExpression = "[}]";
-        String startOfExpression = "[{]![$]?";
-        String swlanmtoubl = "[a-zA-Z]" + "(?!\\w*___\\w*)\\w*";
-        String caseForField1 = "([.]" + swlanmtoubl + ")*";
-        String caseForObject2 = "(\\u005B" + swlanmtoubl + "\\u005D)";
-        String exprssionForObjectCasses = "((" + swlanmtoubl + ")|(" + caseForObject2 + "))";
+        String startOfExpression = "[{]!";
+        String swlanmtoubl = "[a-zA-Z]" + "((?!\\w*__\\w*)\\w*)*";
+        String caseForField1 = "([.]" + "[a-zA-Z]" + "(?!\\w*___\\w*)\\w*" + "){0,10}";
+        String exprssionForObjectCasses = swlanmtoubl;
         String endOfExpression = "[}]";
-//        String stringValueRegexPart1 = startOfExpression + exprssionForObjectCasses + caseForField1 + caseForField2 + endOfExpression;
-        String stringValueRegexPart2 = "\\u0024Setup[.]" + exprssionForObjectCasses + caseForField1;
-        String middleExpressionForValueRegex = "(\\s)*" + exprssionForObjectCasses + caseForField1 + "(\\s)*";
-        String temporaryItem1 = "((('[^']*')|(\"[^\"]*\")|(" + exprssionForObjectCasses + caseForField1 + "))((\\s)*[+](\\s)*))*";
-        String temporaryItem2 = "(((\\s)*[+](\\s)*)(('[^']*')|(\"[^\"]*\")|(" + exprssionForObjectCasses + caseForField1 + ")))*";
-        String stringValueRegexPart3 = startOfExpression + "(\\s)*" + temporaryItem1 + "(" +
-                                       middleExpressionForValueRegex + ")" + temporaryItem2 + "(\\s)*" + endOfExpression;
-        String stringValueRegex = "((" + stringValueRegexPart2 +  ")|(" + stringValueRegexPart3 + "))";
-//        System.out.println(startOfExpression + exprssionForCasses + caseForField1 + caseForField2 + endOfExpression);
-//        String stringValueRegex = "((" + startOfExpression + exprssionForObjectCasses + caseForField1 + caseForField2 + endOfExpression + ")|($Setup." + exprssionForObjectCasses + caseForField1 + caseForField2 + "))";
-//        System.out.println("429: " + stringValueRegex);
+        String middleExpressionForValueRegex = exprssionForObjectCasses + caseForField1;
+        String stringValueRegexPart3 = startOfExpression + middleExpressionForValueRegex + endOfExpression;
+        String stringValueRegex =  stringValueRegexPart3;
+//        System.out.println("stringValueRegex: " + stringValueRegex );
         Pattern p = Pattern.compile(stringValueRegex);
         Set<String> allMatches = new HashSet<>();
         
-        for (String sValue : stringValues) {
-            Matcher m = p.matcher(sValue);
+        stringValues.stream().map((sValue) -> p.matcher(sValue)).forEachOrdered((m) -> {
             while (m.find()) {
                 allMatches.add(m.group());
             }
-        }
+        });
         
         for (String m : allMatches) {
-        
-            String mKey = m.replaceAll("((\"[^\"]*\")|('[^']*')|([\\u005B\\u005D}{!]))", "").replace("+", " ");
-            for (String s : mKey.split(" ")) {
-                if (s.isEmpty()) { continue; }
-                System.out.println("         s: " + s);
-                Boolean isKeyMatch = false;
-                String keyMatch = s;
-                if (s.startsWith("$Setup.")) {
-                    keyMatch = s.replace("$Setup.", "");
-                    String resultItem = keyMatch.replaceAll(" ", "");
-                    if (!keyMatch.contains(".")) {
-                        resultItem = resultItem + ".Id";
-                    }
+            String mKey = m.replaceAll("[}{!]", "");
+            System.out.println("         s: " + mKey);
+            String keyMatch = mKey; 
+            if (mKey.contains(".")) {
+                keyMatch = mKey.substring(0, mKey.indexOf("."));
+                if (vars.containsKey(keyMatch)) {
+                        String resultItem = mKey.replaceFirst(keyMatch, vars.get(keyMatch));
+                        res.add(resultItem);
+                }
+            } else {
+                if (vars.containsKey(mKey)) {
+                    String resultItem = mKey.replaceFirst(mKey, vars.get(mKey)) + ".Id";;
                     res.add(resultItem);
-                    isKeyMatch = true;
-                    keyMatch = resultItem;
-                } else if (s.contains(".")) {
-                    keyMatch = s.replace("$", "").substring(0, s.indexOf("."));
-                    for (String k : vars.keySet()) {
-                            if(!keyMatch.equals("") && keyMatch.equals(k)){
-    //                        System.out.println("key k: " + k);
-                            String resultItem = s.replace(k, vars.get(k));
-                            resultItem = resultItem.replaceAll(" ", "");
-                            res.add(resultItem);
-                            isKeyMatch = true;
-                            keyMatch = resultItem;
-                            break;
-                        }
-                    }
-                } else {
-                    keyMatch =  s.replace("$", "").substring(0, s.length()-1);
-                    for (String k : vars.keySet()) {
-                        if(!keyMatch.equals("") && keyMatch.equals(k)){
-    //                        System.out.println("key k: " + k);
-                            String resultItem = s.replace(k, vars.get(k));
-                            resultItem = resultItem.replaceAll(" ", "") + ".Id";
-                            res.add(resultItem);
-                            isKeyMatch = true;
-                            keyMatch = resultItem;
-                            break;
-                        }
-                    }
                 }
-                if (!isKeyMatch) {
-                    keyMatch = s.replaceAll("[$\\s]", "");
-                    if (!keyMatch.contains(".")) {
-                        keyMatch += ".Id";
-                    }
-                    res.add(keyMatch);
-                }
-                System.out.println("resultItem: " + keyMatch);
             }
-
         }
         System.out.println("}");
         return res;
@@ -521,37 +456,12 @@ public class Main {
         
     public static Set<String> setOfParsedFormulas(Set<String> res, Set<String> stringValues, HashMap<String, String> vars) {
         System.out.println("setOfParsedFormulas: {");
-        //For formula
-        
-        //good option, but very-very-very... slow
-        
-//        String startOfExpression = "[{]!";
-//        String swlanmtoubl = "[a-zA-Z]" + "([_]?[a-zA-Z0-9]+)*";
-//        String caseForObject1 = swlanmtoubl + "([_]{2}" + swlanmtoubl + "([_]{2}[cC])?)?";
-//        String caseForObject2 = "(\\u005B" + caseForObject1 + "\\u005D)";
-//        String caseForField1 = "([.]" + swlanmtoubl + "([_]{2}" + swlanmtoubl  + ")?([_]{2}[rR])?){0,8}";
-//        String caseForField2 = "([.]" + swlanmtoubl + "([_]{2}" + swlanmtoubl  + ")?([_]{2}[crCR])?)?";
-//        String exprssionForObjectCasses = "((" + caseForObject1  + ")|(" + caseForObject2 + "))";
-//        String endOfExpression = "[}]";
-////        String stringValueRegexPart1 = startOfExpression + exprssionForObjectCasses + caseForField1 + caseForField2 + endOfExpression;
-//        String stringValueRegexPart2 = "\\u0024Setup[.]" + exprssionForObjectCasses + caseForField1 + caseForField2;
-//        String middleExpressionForValueRegex = "(\\s)*" + exprssionForObjectCasses + caseForField1 + caseForField2 + "(\\s)*";
-//        String temporaryItem1 = "((('[^']*')|(\"[^\"]*\")|(" + exprssionForObjectCasses + caseForField1 + caseForField2 + "))((\\s)*[+](\\s)*))*";
-//        String temporaryItem2 = "(((\\s)*[+](\\s)*)(('[^']*')|(\"[^\"]*\")|(" + exprssionForObjectCasses + caseForField1 + caseForField2 + ")))*";
-//        String stringValueRegexPart3 = startOfExpression + "(\\s)*" + temporaryItem1 + "(" +
-//                                       middleExpressionForValueRegex + ")" + temporaryItem2 + "(\\s)*" + endOfExpression;
-//        String stringValueRegex = "((" + stringValueRegexPart2 +  ")|(" + stringValueRegexPart3 + "))";
-////        System.out.println("stringValueRegex" + stringValueRegex);
-        
-        //good option, but very-very-very... slow
-
 
         String startOfExpression = "[{]![$]?";
         String swlanmtoubl = "[a-zA-Z]" + "(?!\\w*___\\w*)\\w*";
         String caseForField1 = "([.]" + swlanmtoubl + ")*";
         String exprssionForObjectCasses = swlanmtoubl;
         String endOfExpression = "[}]";
-//        String stringValueRegexPart1 = startOfExpression + exprssionForObjectCasses + caseForField1 + caseForField2 + endOfExpression;
         String stringValueRegexPart2 = "\\u0024Setup[.]" + exprssionForObjectCasses + caseForField1;
         String middleExpressionForValueRegex = "(\\s)*" + exprssionForObjectCasses + caseForField1 + "(\\s)*";
         String temporaryItem1 = "((('[^']*')|(\"[^\"]*\")|(" + exprssionForObjectCasses + caseForField1 + "))((\\s)*[+](\\s)*))*";
@@ -559,80 +469,70 @@ public class Main {
         String stringValueRegexPart3 = startOfExpression + "(\\s)*" + temporaryItem1 + "(" +
                                        middleExpressionForValueRegex + ")" + temporaryItem2 + "(\\s)*" + endOfExpression;
         String stringValueRegex = "((" + stringValueRegexPart2 +  ")|(" + stringValueRegexPart3 + "))";
-//        System.out.println("stringValueRegex" + stringValueRegex);
-//        System.out.println("it's the final stringdown: " + stringValueRegex);
 
         Pattern p = Pattern.compile(stringValueRegex);
         Set<String> allMatches = new HashSet<>();
         
-        for (String sValue : stringValues) {
-            Matcher m = p.matcher(sValue);
+        stringValues.stream().map((sValue) -> p.matcher(sValue)).forEachOrdered((m) -> {
             while (m.find()) {
                 allMatches.add(m.group());
             }
-        }
-        for (String m : allMatches) {
-        
+        });
+        allMatches.stream().map((m) -> 
+                m.replaceAll("((\"[^\"]*\")|('[^']*')|([}{!]))", "").replaceAll("[+]", " ")).forEachOrdered((mKey) -> 
+                {
 //            String mKey = m.replaceAll("'[^']*'", "").replaceAll("\"[^\"]*\"", "").replace("[", "").replace("]", "").replace("{!", "").replace("}", "").replace("+", " ");
-            String mKey = m.replaceAll("((\"[^\"]*\")|('[^']*')|([\\u005B\\u005D}{!]))", "").replace("+", " ");
-            for (String s : mKey.split(" ")) {
-                if (s.isEmpty()) { continue; }
-                System.out.println("         s: " + s);
-                Boolean isKeyMatch = false;
-                String keyMatch = s;
-                if (s.startsWith("$Setup.")) {
-                    keyMatch = s.replace("$Setup.", "");
-                    String resultItem = keyMatch.replaceAll(" ", "");
-                    if (!keyMatch.contains(".")) {
-                        resultItem = resultItem + ".Id";
-                    }
-                    res.add(resultItem);
-                    keyMatch = resultItem;
-                    isKeyMatch = true;
-                } else if (s.contains(".")) {
-                    keyMatch = s.replace("$", "").substring(0, s.indexOf("."));
-                    for (String k : vars.keySet()) {
-                            if(!keyMatch.equals("") && keyMatch.equals(k)){
-    //                        System.out.println("key k: " + k);
-                            String resultItem = s.replace(k, vars.get(k));
-                            resultItem = resultItem.replaceAll(" ", "");
+                    for (String s : mKey.split(" ")) {
+                        if (s.isEmpty()) { continue; }
+                        System.out.println("         s: " + s);
+                        Boolean isKeyMatch = false;
+                        String keyMatch = s;
+                        if (s.startsWith("$Setup.")) {
+                            keyMatch = s.replace("$Setup.", "");
+                            String resultItem = keyMatch.replaceAll(" ", "");
+                            if (!keyMatch.contains(".")) {
+                                resultItem = resultItem + ".Id";
+                            }
                             res.add(resultItem);
-                            isKeyMatch = true;
                             keyMatch = resultItem;
-                            break;
-                        }
-                    }
-                } else {
-                    keyMatch =  s.replace("$", "").substring(0, s.length());
-                    for (String k : vars.keySet()) {
-                        if(!keyMatch.equals("") && keyMatch.equals(k)){
-    //                        System.out.println("key k: " + k);
-                            String resultItem = s.replace(k, vars.get(k));
-                            resultItem = resultItem.replaceAll(" ", "") + ".Id";
-                            res.add(resultItem);
                             isKeyMatch = true;
-                            keyMatch = resultItem;
-                            break;
+                        } else if (s.contains(".")) {
+                            keyMatch = s.replace("$", "").substring(0, s.indexOf("."));
+                            if (vars.containsKey(keyMatch)) {
+                                String resultItem = s.replace(keyMatch, vars.get(keyMatch));
+                                resultItem = resultItem.replaceAll(" ", "");
+                                res.add(resultItem);
+                                isKeyMatch = true;
+                                keyMatch = resultItem;
+                            }
+                        } else {
+                            keyMatch =  s.replace("$", "");
+                            if (vars.containsKey(keyMatch)) {
+                                String resultItem = s.replace(keyMatch, vars.get(keyMatch));
+                                resultItem = resultItem.replaceAll(" ", "") + ".Id";
+                                res.add(resultItem);
+                                isKeyMatch = true;
+                                keyMatch = resultItem;
+                            }
                         }
+                        if (!isKeyMatch) {
+//                          keyMatch = s.replaceAll(" ", "").replace("$", "");
+                            keyMatch = s.replaceAll("[$\\s]", "") + (keyMatch.contains(".") ? "" : ".Id");
+                            res.add(keyMatch);
+                        }
+                        System.out.println("resultItem: " + keyMatch);
                     }
-                }
-                if (!isKeyMatch) {
-//                    keyMatch = s.replaceAll(" ", "").replace("$", "");
-                    keyMatch = s.replaceAll("[$\\s]", "");
-                    if (!keyMatch.contains(".")) {
-                        keyMatch += ".Id";
-                    }                    
-                    res.add(keyMatch);
-                }
-                System.out.println("resultItem: " + keyMatch);
-            }
-            
-        }
+        });
         System.out.println("}");
 //        System.out.println("((('[^']*')|(\"[^\"]*\")|(" + exprssionForObjectCasses + caseForField1 + caseForField2 + "))((\\s)*[+](\\s)*))*");
         return res;
     }
+
     
+    /**
+     * Chatter String Values support only: expression like {!SObject.Name} where SObject is key in map(vars) and {![Account].Name}
+     * All other cases like {! [Account].Name} or {! SObject.Name} don't have any affects on expression it will be only strings.
+    */
     public static Set<String> setOfParsedChatterStringValues(FlowMetadata md, HashMap<String, String> vars) {
         //For chatter message
         List<Object> actionCalls = md.actionCalls;
@@ -646,104 +546,90 @@ public class Main {
             if (!item.get("actionType").toString().equals("chatterPost")) { continue; }
             List<Object> processMetadataValue = (ArrayList<Object>) item.get("processMetadataValues");
             if (processMetadataValue != null) {
-                for (Object pmv : processMetadataValue) {
-                    HashMap<String, Object> pmvMap = (HashMap<String, Object>) new Gson().fromJson(new Gson().toJson(pmv), HashMap.class);
-                    if (pmvMap.get("value") == null) { continue; }
-                    ItemValue iValue = (ItemValue) new Gson().fromJson(new Gson().toJson(pmvMap.get("value")), ItemValue.class);
-                    if (iValue != null) {
-                        if (!StringUtils.isBlank(iValue.stringValue)) {
-                            stringValues.add(iValue.stringValue);
-                        }
-                        if (!StringUtils.isBlank(iValue.elementReference)) {
-                            elementReferences.add(iValue.elementReference);
-                        }
-                    }
-                } 
+                processMetadataValue.stream().map((pmv) -> 
+                        (HashMap<String, Object>) new Gson().fromJson(new Gson().toJson(pmv), HashMap.class)).filter((pmvMap) -> 
+                                !(pmvMap.get("value") == null)).map((pmvMap) -> 
+                                        (ItemValue) new Gson().fromJson(new Gson().toJson(pmvMap.get("value")), ItemValue.class)).filter((iValue) -> 
+                                                (iValue != null)).map((iValue) -> 
+                                                {
+                                                    if (!StringUtils.isBlank(iValue.stringValue)) {
+                                                        stringValues.add(iValue.stringValue);
+                                                    }
+                                                    return iValue; 
+                                                }).filter((iValue) -> (!StringUtils.isBlank(iValue.elementReference))).forEachOrdered((iValue) -> {
+                                                    elementReferences.add(iValue.elementReference);
+                                                });
             }
             
             List<Object> inputParameters = (ArrayList<Object>) item.get("inputParameters");
             if (inputParameters != null) {
-                for (Object pmv : inputParameters) {
-                    if (((Map<String, Object>) pmv).get("value") == null) { continue; }
-                    ItemValue iValue = (ItemValue) new Gson().fromJson(new Gson().toJson(((Map<String, Object>) pmv).get("value")), ItemValue.class);
-                    if (iValue != null) {
-                        if (!StringUtils.isBlank(iValue.stringValue)) {
-                            stringValues.add(iValue.stringValue);
-                        }
-                        if (!StringUtils.isBlank(iValue.elementReference)) {
-                            elementReferences.add(iValue.elementReference);
-                        }
-                    }
-                }
-            }
-            
+                inputParameters.stream().filter((pmv) -> 
+                        !(((Map<String, Object>) pmv).get("value") == null)).map((pmv) -> 
+                            (ItemValue) new Gson().fromJson(new Gson().toJson(((Map<String, Object>) pmv).get("value")), ItemValue.class)).filter((iValue) -> 
+                                    (iValue != null)).map((iValue) -> 
+                                    {
+                                        if (!StringUtils.isBlank(iValue.stringValue)) {
+                                            stringValues.add(iValue.stringValue);
+                                        }
+                                        return iValue;
+                                    }).filter((iValue) -> (!StringUtils.isBlank(iValue.elementReference))).forEachOrdered((iValue) -> {
+                                        elementReferences.add(iValue.elementReference);
+                                    });
+                                }
         }
         for(String eR : elementReferences) {
             for (String key : vars.keySet()) {
-                if (eR.startsWith(key + ".") || eR.equals(key)) {  
-                    eR = eR.replace(key, vars.get(key));
+                if (eR.startsWith(key)) {  
+                    eR = eR.replace(key, vars.get(key)) + (eR.contains(".") ? "" : ".Id");
                     res.add(eR);
                     break;
                 }
             }
         }
-        System.out.println("chatterStringValues: ");
-        if (true) { return setOfParsedStringValues(res, stringValues, vars);  }
+        System.out.println("chatterStringValues:\n{ ");
         String startOfExpression = "[{]!";
-        String swlanmtoubl = "[a-zA-Z]" + "([_]?[a-zA-Z0-9]+)*";
-        String caseForObject1 = swlanmtoubl + "([_]{2}" + swlanmtoubl + "([_]{2}[crCR])?)?";
-        String caseForObject2 = "(\\u005B" + caseForObject1 + "([_]{2}[crCR])?\\u005D)";
-        String caseForField1 = "([.]{1}" + swlanmtoubl + "([_]{2}" + swlanmtoubl  + ")?([_]{2}[rR])?){0,8}";
-        String caseForField2 = "([.]{1}" + swlanmtoubl + "([_]{2}" + swlanmtoubl  + ")?([_]{2}[crCR])?)?";
-        String exprssionForCasses = "((" + caseForObject1  + ")|(" + caseForObject2 + "))";
+        
+        String swlanmtoubl1 = "[a-zA-Z]" + "((?!\\w*__\\w*)\\w*)*"; //do not allow 2 underscores in a row. 
+        String swlanmtoubl2 = "[a-zA-Z]" + "((?!\\w*___\\w*)\\w*)*"; //do not allow 3 underscores in a row. 
+        
+        String caseForField1 = "([.]" + swlanmtoubl1 + "){0,10}";
+        String caseForField2 = "([.]" + swlanmtoubl2 + "){1,10}";
+        
+        String caseForObject2 = "(\\u005B" + swlanmtoubl2 + "\\u005D)";
+        String exprssionForObjectCasses = "((" + swlanmtoubl1 + caseForField1 +  ")|(" + caseForObject2 + caseForField2 + "))";
         String endOfExpression = "[}]";
-//        System.out.println(startOfExpression + exprssionForCasses + caseForField1 + caseForField2 + endOfExpression);
-        String middleValueRegex = startOfExpression + exprssionForCasses + caseForField1 + caseForField2 + endOfExpression;
-//        String middleValueRegex = "[{]!((" + swlanmtoubl + ")|(\\u005B" + swlanmtoubl + "([_]{2}[crCR]){0,1}\\u005D))" +  
-//                                  "([.]{1}" + swlanmtoubl + "([_]{2}[rR])?){0,8}([.]{1}" + swlanmtoubl + "([_]{2}[crCR])?)?[}]";
-        Pattern p = Pattern.compile(middleValueRegex);
-        List<String> strsList = new ArrayList<String>();
-        for (String sValue : stringValues) {
-            Matcher m = p.matcher(sValue);
+        String stringValueRegex =  startOfExpression + exprssionForObjectCasses + endOfExpression;
+        System.out.println("stringChatterValueRegex: " + stringValueRegex);
+        Pattern p = Pattern.compile(stringValueRegex);
+        Set<String> allMatches = new HashSet<>();
+        stringValues.stream().map((sValue) -> p.matcher(sValue)).forEachOrdered((m) -> {
             while (m.find()) {
-                System.out.println(m.group() + ", length : " + m.group().length() + ", indexOf: " + m.group().indexOf("."));
-                if (m.group().indexOf(".") > 0) {
-                    Integer LBracketIndex = m.group().indexOf("].");
-                    String keyMatch = LBracketIndex < 0 ? m.group().substring(2, m.group().indexOf(".")) : "";
-                    String valueMatch = LBracketIndex > 0 ? m.group().substring(3, LBracketIndex) : "";
-                    vars.forEach((k,v)->{
-                            if(!keyMatch.equals("") && keyMatch.equals(k)){
-        //                        System.out.println("key k: " + k);
-                                String resultItem = m.group().replace(k, v).replace("[", "").replace("]", "").replace("{!", "").replace("}", "");
-                                resultItem = resultItem.startsWith("$Setup.") ? resultItem.replace("$Setup.", "") : resultItem;
-                                res.add(resultItem);
-                            }
-                            if(!valueMatch.equals("") && valueMatch.equals(v)){
-        //                        System.out.println("value v: " + v);
-                                String resultItem = m.group().replace(k, v).replace("[", "").replace("]", "").replace("{!", "").replace("}", "");
-                                resultItem = resultItem.startsWith("$Setup.") ? resultItem.replace("$Setup.", "") : resultItem;
-                                res.add(resultItem);
-                            }
-                    });
-                } else {
-                    Integer LBracketIndex = m.group().indexOf("]");
-                    String keyMatch = LBracketIndex < 0 ? m.group().substring(2, m.group().length()-1) : "";
-                    String valueMatch = LBracketIndex > 0 ? m.group().substring(3, m.group().length()-2) : "";
-                    vars.forEach((k,v)->{
-                            if(!keyMatch.equals("") && keyMatch.equals(k)){
-        //                        System.out.println("key k: " + k);
-//                                res.add(m.group().replace(k, v).replace("[\\u005B\\u005D}{!]", "").replace("]", "").replace("{!", "").replace("}", ""));
-                                res.add(m.group().replace(k, v).replace("[\\u005B\\u005D}{!]", ""));
-                            }
-                            if(!valueMatch.equals("") && valueMatch.equals(v)){
-        //                        System.out.println("value v: " + v);
-//                                res.add(m.group().replace("[", "").replace("]", "").replace("{!", "").replace("}", ""));
-                                res.add(m.group().replace("[\\u005B\\u005D}{!]", ""));
-                            }
-                    });
+                allMatches.add(m.group());
+            }
+        });
+        
+        allMatches.stream().map((m) -> m.replaceAll("[}{!]", "")).map((mKey) -> {
+            System.out.println("         s: " + mKey);
+            return mKey; 
+        }).forEachOrdered((mKey) -> {
+            String keyMatch = mKey;
+            if (mKey.contains("[")) {
+                keyMatch = mKey.replaceAll("[\\u005B\\u005D]", "");
+                res.add(keyMatch);
+            } else if (mKey.contains(".")) {
+                keyMatch = mKey.substring(0, mKey.indexOf("."));
+                if(vars.containsKey(keyMatch)) {
+                    String resultItem = mKey.replaceFirst(keyMatch, vars.get(keyMatch));
+                    res.add(resultItem);
+                }
+            } else {
+                if(vars.containsKey(keyMatch)) {
+                    String resultItem = mKey.replaceFirst(keyMatch, vars.get(keyMatch)) + ".Id";
+                    res.add(resultItem);
                 }
             }
-        }
+        });
+        System.out.println("}");
         return res;
     }
     
@@ -768,10 +654,9 @@ public class Main {
         for (RawData rd : rawD.rawData) {
             System.out.println("\n" + (i++) + ":\nrd: " + new Gson().toJson(rd));
             HashMap<String, String> vars = new HashMap<String, String>();
-            for (Variable var : rd.Metadata.variables) {
-                if (StringUtils.isBlank(var.objectType)) { continue; }
+            rd.Metadata.variables.stream().filter((var) -> !(StringUtils.isBlank(var.objectType))).forEachOrdered((var) -> {
                 vars.put(var.name, var.objectType);
-            }
+            });
             vars.forEach((k,v)->{
                     System.out.println("key: " + k + ", value: " + v);
             });        
