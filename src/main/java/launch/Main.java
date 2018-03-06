@@ -28,7 +28,11 @@ public class Main {
     public static Set<String> getActionCallsFU(FlowMetadata md, HashMap<String, String> vars) {
         List<Object> actionCalls = md.actionCalls;
         Set<String> res = new HashSet<>();
-        if (actionCalls.isEmpty()) { return res; }
+        
+        if (actionCalls.isEmpty()) { 
+            System.out.println("actionCalls: ");
+            return setOfParsedStringValues(res, new HashSet<>(), vars);
+        }
         String rd = "";
         Set<String> elementReferences = new HashSet<>();
         Set<String> stringValues = new HashSet<>();
@@ -85,7 +89,10 @@ public class Main {
     public static Set<String> getAssignmentsFU(FlowMetadata md, HashMap<String, String> vars) {
         List<Object> assignments = (List<Object>) md.assignments;
         Set<String> res = new HashSet<>();
-        if (assignments.isEmpty()) { return res; }
+        if (assignments.isEmpty()) { 
+            System.out.println("assignements: ");
+            return setOfParsedStringValues(res, new HashSet<>(), vars);
+        }
         String rd = "";
         List<Object> assignmentItems = new ArrayList<>();
         assignments.stream().map((obj) -> (Map<String, Object>) obj).forEachOrdered((item) -> {
@@ -120,7 +127,8 @@ public class Main {
                 if (iValue != null) {
                     if (!StringUtils.isBlank(iValue.stringValue)) {
                         stringValues.add(iValue.stringValue);
-                    }   if (!StringUtils.isBlank(iValue.elementReference)) {
+                    }   
+                    if (!StringUtils.isBlank(iValue.elementReference)) {
                         elementReferences.add(iValue.elementReference);
                     }
                 }
@@ -136,8 +144,7 @@ public class Main {
             }
         }
         System.out.println("assignements: ");
-        res = setOfParsedStringValues(res, stringValues, vars);
-        return res;
+        return setOfParsedStringValues(res, stringValues, vars);
     }
     
     public static Set<String> getDecisionsFU(FlowMetadata md, HashMap<String, String> vars) {
@@ -433,15 +440,16 @@ public class Main {
             }
         });
         
-        for (String m : allMatches) {
-            String mKey = m.replaceAll("[}{!]", "");
+        allMatches.stream().map((m) -> m.replaceAll("[}{!]", "")).map((mKey) -> {
             System.out.println("         s: " + mKey);
-            String keyMatch = mKey; 
+            return mKey; 
+        }).forEachOrdered((mKey) -> {
+            String keyMatch = mKey;
             if (mKey.contains(".")) {
                 keyMatch = mKey.substring(0, mKey.indexOf("."));
                 if (vars.containsKey(keyMatch)) {
-                        String resultItem = mKey.replaceFirst(keyMatch, vars.get(keyMatch));
-                        res.add(resultItem);
+                    String resultItem = mKey.replaceFirst(keyMatch, vars.get(keyMatch));
+                    res.add(resultItem);
                 }
             } else {
                 if (vars.containsKey(mKey)) {
@@ -449,7 +457,7 @@ public class Main {
                     res.add(resultItem);
                 }
             }
-        }
+        });
         System.out.println("}");
         return res;
     }
@@ -481,10 +489,9 @@ public class Main {
         allMatches.stream().map((m) -> 
                 m.replaceAll("((\"[^\"]*\")|('[^']*')|([}{!]))", "").replaceAll("[+]", " ")).forEachOrdered((mKey) -> 
                 {
-//            String mKey = m.replaceAll("'[^']*'", "").replaceAll("\"[^\"]*\"", "").replace("[", "").replace("]", "").replace("{!", "").replace("}", "").replace("+", " ");
                     for (String s : mKey.split(" ")) {
                         if (s.isEmpty()) { continue; }
-                        System.out.println("         s: " + s);
+                        System.out.println("         s: " + s.replaceFirst("[$]", ""));
                         Boolean isKeyMatch = false;
                         String keyMatch = s;
                         if (s.startsWith("$Setup.")) {
@@ -586,7 +593,7 @@ public class Main {
                 }
             }
         }
-        System.out.println("chatterStringValues:\n{ ");
+        System.out.println("chatterStringValues:\nsetOfParsedStringValues: { ");
         String startOfExpression = "[{]!";
         
         String swlanmtoubl1 = "[a-zA-Z]" + "((?!\\w*__\\w*)\\w*)*"; //do not allow 2 underscores in a row. 
