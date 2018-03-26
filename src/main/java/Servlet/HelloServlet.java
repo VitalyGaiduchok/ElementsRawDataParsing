@@ -167,6 +167,8 @@ public class HelloServlet extends HttpServlet {
         res.addAll(Main.getFlowFormulasFU(metadata, vars));
         res.addAll(Main.getProcessMetadataValuesFromMDFU(metadata, vars));
         res.addAll(Main.setOfParsedChatterStringValues(metadata, vars));
+        System.out.println("  this res:" + res.toString());
+        System.out.println("------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
         return res;
     }
     

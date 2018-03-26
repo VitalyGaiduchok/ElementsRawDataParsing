@@ -71,6 +71,13 @@ public class Main {
                                                     elementReferences.add(iValue.elementReference);
                                                 });
                                             }
+            List<Object> outputParameters = (ArrayList<Object>) item.get("outputParameters");
+            if (outputParameters != null) {
+                outputParameters.stream().map((op) -> (HashMap<String, Object>) new Gson().fromJson(new Gson().toJson(op), HashMap.class)).forEachOrdered((opMap) -> {
+                    elementReferences.add((String) opMap.get("assignToReference"));
+                });
+            }
+
         }
         for(String eR : elementReferences) {
             for (String key : vars.keySet()) {
@@ -112,8 +119,7 @@ public class Main {
                 processMetadataValue.stream().filter((pmv) -> 
                         !(((Map<String, Object>) pmv).get("value") == null)).map((pmv) -> 
                                 (ItemValue) new Gson().fromJson(new Gson().toJson(((Map<String, Object>) pmv).get("value")), ItemValue.class)).filter((iValue) -> 
-                                        (iValue != null)).map((iValue) -> 
-                                        {
+                                        (iValue != null)).map((iValue) -> {
                                             if (!StringUtils.isBlank(iValue.stringValue)) {
                                                 stringValues.add(iValue.stringValue);
                                             }
@@ -165,19 +171,17 @@ public class Main {
             List<Object> conditions = (List<Object>) ((Map<String, Object>) rule).get("conditions");
             if (conditions == null) { continue; }
             
-            for (Object condition : conditions) {
-                Map<String, Object> conditionMap = (Map<String, Object>) condition;
+            conditions.stream().map((condition) -> (Map<String, Object>) condition).map((conditionMap) -> {
                 elementReferences.add(conditionMap.get("leftValueReference").toString());
-                ItemValue iValue = (ItemValue) new Gson().fromJson(new Gson().toJson(conditionMap.get("rightValue")), ItemValue.class);
-                if (iValue != null) {
-                    if (!StringUtils.isBlank(iValue.stringValue)) {
-                        stringValues.add(iValue.stringValue);
-                    }
-                    if (!StringUtils.isBlank(iValue.elementReference)) {
-                        elementReferences.add(iValue.elementReference);
-                    }
-                }            
-            }
+                return conditionMap;
+            }).map((conditionMap) -> (ItemValue) new Gson().fromJson(new Gson().toJson(conditionMap.get("rightValue")), ItemValue.class)).filter((iValue) -> (iValue != null)).map((iValue) -> {
+                if (!StringUtils.isBlank(iValue.stringValue)) {
+                    stringValues.add(iValue.stringValue);
+                }
+                return iValue;
+            }).filter((iValue) -> (!StringUtils.isBlank(iValue.elementReference))).forEachOrdered((iValue) -> {
+                elementReferences.add(iValue.elementReference);
+            });
             
         }
         elementReferences.forEach((eR) -> {
@@ -530,7 +534,7 @@ public class Main {
                         }
                         if (!isKeyMatch) {
 //                          keyMatch = s.replaceAll(" ", "").replace("$", "");
-                            keyMatch = s.replaceAll("(([$])|())", "") + (keyMatch.contains(".") ? "" : ".Id");
+                            keyMatch = s.replaceAll("(([$])|())", "") + ((keyMatch.contains(".") || s.contains("."))  ? "" : ".Id");
                             res.add(keyMatch);
                         }
                         System.out.println("         s: " + s.replaceFirst("[$]", ""));
@@ -669,7 +673,8 @@ public class Main {
         Set<String> superReturn = new HashSet<>();
         int i = 1;
         for (RawData rd : rawD.rawData) {
-            System.out.println("\n" + (i++) + ":\nrd: " + new Gson().toJson(rd));
+            System.out.println("\n------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
+            System.out.println((i++) + ":\nrd: " + new Gson().toJson(rd));
             HashMap<String, String> vars = new HashMap<String, String>();
             rd.Metadata.variables.stream().filter((var) -> !(StringUtils.isBlank(var.objectType))).forEachOrdered((var) -> {
                 if (StringUtils.isBlank(var.objectType)) { 
@@ -679,7 +684,7 @@ public class Main {
                 }
             });
             vars.forEach((k,v)->{
-                    System.out.println("key: " + k + ", value: " + v);
+                System.out.println("key: " + k + ", value: " + v);
             });        
 //            System.out.println("\n\n1: getActionCallsFU Response : " + getActionCallsFU(rd.Metadata, vars));
 //            System.out.println("\n\n2: getAssignmentsFU Response : " + getAssignmentsFU(rd.Metadata, vars));
