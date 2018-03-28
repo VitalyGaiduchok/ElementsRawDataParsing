@@ -1,9 +1,7 @@
-package Servlet;
+package Flow;
 
 import com.google.gson.Gson;
 import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -16,7 +14,6 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import launch.FlowParser;
 
 @WebServlet(
         name = "ParseController",
@@ -95,23 +92,6 @@ public class ParserController extends HttpServlet {
         public String name;
         public String objectType;
         public String dataType;
-    }
-    
-    public static String returnJsonString() throws IOException {
-        
-//        File f = new File("FlowJson.json");
-        File f = new File("RealFlow.json");
-//        File f = new File("volarisJson.json");
-        FileReader fr = new FileReader(f);
-        BufferedReader br = new BufferedReader(fr);
-        String bodyLines = null;
-        String bodyStr = "";
-        while ((bodyLines = br.readLine())!=null) {
-            bodyStr+=bodyLines;
-        }
-        br.close();
-        fr.close();
-        return bodyStr;
     }
     
     public static Set<String> returnAllFields(FlowMetadata metadata, HashMap<String, String> vars) {

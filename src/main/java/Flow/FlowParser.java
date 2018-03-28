@@ -1,9 +1,8 @@
-package launch;
+package Flow;
 
-import Servlet.ParserController;
-import Servlet.ParserController.FlowMetadata;
-import Servlet.ParserController.RawData;
-import Servlet.ParserController.ResponseRawData;
+import Flow.ParserController.FlowMetadata;
+import Flow.ParserController.RawData;
+import Flow.ParserController.ResponseRawData;
 import com.google.gson.Gson;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -428,10 +427,9 @@ public class FlowParser {
         System.out.println("setOfParsedStringValues: {");
         String startOfExpression = "[{]!";
         String swlanmtoubl = "[a-zA-Z]" + "((?!\\w*__\\w*)\\w*)*";
-        String caseForField1 = "([.]" + "[a-zA-Z]" + "(?!\\w*___\\w*)\\w*" + "){0,10}";
-        String exprssionForObjectCasses = swlanmtoubl;
+        String caseForField = "([.]" + "[a-zA-Z]" + "(?!\\w*___\\w*)\\w*" + "){0,10}";
         String endOfExpression = "[}]";
-        String middleExpressionForValueRegex = exprssionForObjectCasses + caseForField1;
+        String middleExpressionForValueRegex = swlanmtoubl + caseForField;
         String stringValueRegexPart3 = startOfExpression + middleExpressionForValueRegex + endOfExpression;
         String stringValueRegex =  stringValueRegexPart3;
         Pattern p = Pattern.compile(stringValueRegex);
@@ -760,44 +758,6 @@ public class FlowParser {
         System.out.println("     str: " + str);
         return str;
     
-    }
-    
-    public static void main(String[] args) throws Exception {
-        
-        String bodyStr = ParserController.returnJsonString();
-        ResponseRawData rawD = new Gson().fromJson(bodyStr, ResponseRawData.class);
-        if (rawD == null) { return; }
-        Set<String> superReturn = new HashSet<>();
-        int i = 1;
-        for (RawData rd : rawD.rawData) {
-            System.out.println("\n------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
-            System.out.println((i++) + ":\nrd: " + new Gson().toJson(rd));
-            HashMap<String, String> vars = new HashMap<String, String>();
-            rd.Metadata.variables.stream().filter((var) -> !(StringUtils.isBlank(var.objectType))).forEachOrdered((var) -> {
-                if (StringUtils.isBlank(var.objectType)) { 
-                    vars.put(var.name, "Without Object Type");
-                } else {
-                    vars.put(var.name, var.objectType);
-                }
-            });
-            vars.forEach((k,v)->{
-                System.out.println("key: " + k + ", value: " + v);
-            });        
-//            System.out.println("\n\n1: getActionCallsFU Response : " + getActionCallsFU(rd.Metadata, vars));
-//            System.out.println("\n\n2: getAssignmentsFU Response : " + getAssignmentsFU(rd.Metadata, vars));
-//            System.out.println("\n\n3: getDecisionsFU Response : " + getDecisionsFU(rd.Metadata, vars));
-//            System.out.println("\n\n4: getRecordCreatesFU Response : " + getRecordCreatesFU(rd.Metadata, vars));
-//            System.out.println("\n\n5: getRecordLookupsFU Response : " + getRecordLookupsFU(rd.Metadata, vars));
-//            System.out.println("\n\n6: getRecordUpdatesFU Response : " + getRecordUpdatesFU(rd.Metadata, vars));
-//            System.out.println("7: getFlowFormulasFU Response : " + getFlowFormulasFU(rd.Metadata, vars).toString() + "\n\n");
-//            System.out.println("\n\n8: getProcessMetadataValuesFromMDFU Response : " + getProcessMetadataValuesFromMDFU(rd.Metadata, vars));
-//            System.out.println("\n\n9: setOfParsedChatterStringValues Response : " + setOfParsedChatterStringValues(rd.Metadata, vars));
-            
-            superReturn.addAll(ParserController.returnAllFields(rd.Metadata, vars));
-
-        }
-        System.out.println("\n\nsuperReturn: " + new Gson().toJson(superReturn));
-        
     }
     
     public class ItemValue {
