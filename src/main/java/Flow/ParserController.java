@@ -20,17 +20,6 @@ import javax.servlet.http.HttpServletResponse;
         urlPatterns = {"/flowParse"}
     )
 public class ParserController extends HttpServlet {
-
-//    private String token = "ASDYQW127BFYWEBCAQWUQWNCE38ASDNCNUEO12";
-    
-//    @Override
-//    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-//        ServletOutputStream out = resp.getOutputStream();
-//        System.out.println("bodyStr");
-//        out.write("hello heroku".getBytes());
-//        out.flush();
-//        out.close();
-//    }
         
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
@@ -52,17 +41,16 @@ public class ParserController extends HttpServlet {
         }
 
         Set<String> result = new HashSet<>();
-        for (RawData rd : rawD.rawData) {
+        rawD.rawData.forEach((rd) -> {
             HashMap<String, String> vars = new HashMap<String, String>();
-            for (Variable var : rd.Metadata.variables) {
+            rd.Metadata.variables.forEach((var) -> {
                 vars.put(var.name, var.objectType);
-            }
+            });
             vars.forEach((k,v)->{
                 System.out.println("\nkey: " + k + ", value: " + v);
             }); 
             result.addAll(getAllFieldsFromMD(rd.Metadata, vars));
-
-        }
+        });
         resp.getWriter().append(new Gson().toJson(result));
         resp.setStatus(200);
 
