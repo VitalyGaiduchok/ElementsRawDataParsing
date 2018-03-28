@@ -468,7 +468,7 @@ public class FlowParser {
         System.out.println("setOfParsedFormulas: {");
 
         String swlanmtoubl = "[a-zA-Z]" + "(?!\\w*___\\w*)\\w*";
-        String stringValueRegex = swlanmtoubl + "([.]" + swlanmtoubl + ")+";
+        String stringValueRegex = swlanmtoubl + "([.]" + swlanmtoubl + "){1,10}";
         System.out.println("stringValueRegex: " + stringValueRegex);
         Pattern p = Pattern.compile(stringValueRegex);
         Set<String> allMatches = new HashSet<>();
@@ -667,8 +667,8 @@ public class FlowParser {
                 continue;
             }
             IndexClass ic = new IndexClass();
-            ic.index = braceIndex;
-            ic.type = "braceIndex";
+            ic.setIndex(braceIndex);
+            ic.setType("braceIndex");
             sortedIndexes.add(ic);
 //            System.out.println("braceIndex: " + braceIndex);
             braceIndex = str.indexOf("'", braceIndex + 1);
@@ -680,8 +680,8 @@ public class FlowParser {
                 continue;
             }
             IndexClass ic = new IndexClass();
-            ic.index = doubleBraceIndex;
-            ic.type = "doubleBraceIndex";
+            ic.setIndex(doubleBraceIndex);
+            ic.setType("doubleBraceIndex");
             sortedIndexes.add(ic);
 //            System.out.println("doubleBraceIndex: " + doubleBraceIndex);
             doubleBraceIndex = str.indexOf("\"", doubleBraceIndex + 1);
@@ -689,8 +689,8 @@ public class FlowParser {
                 
         while (openCommentIndex >= 0) {
             IndexClass ic = new IndexClass();
-            ic.index = openCommentIndex;
-            ic.type = "openCommentIndex";
+            ic.setIndex(openCommentIndex);
+            ic.setType("openCommentIndex");
             sortedIndexes.add(ic);
 //            System.out.println("openCommentIndex: " + openCommentIndex);
             openCommentIndexes.add(openCommentIndex);
@@ -703,8 +703,8 @@ public class FlowParser {
                 continue;
             }
             IndexClass ic = new IndexClass();
-            ic.index = closeCommentIndex;
-            ic.type = "closeCommentIndex";
+            ic.setIndex(closeCommentIndex);
+            ic.setType("closeCommentIndex");
             sortedIndexes.add(ic);
 //            System.out.println("closeCommentIndex: " + closeCommentIndex);
             closeCommentIndex = str.indexOf("*/", closeCommentIndex + 1);
@@ -719,13 +719,13 @@ public class FlowParser {
         int lastIndex = -1;
         for (IndexClass ic : sortedIndexes) {
 //            System.out.println("ic: " + ic.index + ", type: " + ic.type);
-            if (indexType == ic.type) {
-                lastIndex = ic.index;
+            if (indexType == ic.getType()) {
+                lastIndex = ic.getIndex();
                 isStartIndexFound = false;
                 IndexClass icDeleted = new IndexClass();
-                icDeleted.firstIndex = firstIndex;
-                icDeleted.lastIndex = lastIndex;
-                icDeleted.type = indexType;
+                icDeleted.setFirstIndex(firstIndex);
+                icDeleted.setLastIndex(lastIndex);
+                icDeleted.setType(indexType);
                 indexesForDelete.add(icDeleted);
                 indexType = "";
                 firstIndex = -1;
@@ -735,8 +735,8 @@ public class FlowParser {
             }
             
             if (!isStartIndexFound && !needCheck) {
-                firstIndex = ic.index;
-                indexType = ic.type == "openCommentIndex" ? "closeCommentIndex" : ic.type ;
+                firstIndex = ic.getIndex();
+                indexType = ic.getType() == "openCommentIndex" ? "closeCommentIndex" : ic.getType() ;
                 isStartIndexFound = true;
             }
             needCheck = false;
@@ -745,12 +745,12 @@ public class FlowParser {
         String strFirst = str;
         for (IndexClass ic : indexesForDelete) {
 //            System.out.println("index: " + ic.index + ", firstIndex: " + ic.firstIndex + ", lastIndex: " + ic.lastIndex + ", type: " + ic.type);
-            if (ic.type == "closeCommentIndex") {
+            if (ic.getType() == "closeCommentIndex") {
 //                System.out.println("   token: " + str.substring(ic.firstIndex, ic.lastIndex+2));
-                str = str.substring(0, ic.firstIndex) + str.substring(ic.lastIndex+2);
+                str = str.substring(0, ic.getFirstIndex()) + str.substring(ic.getLastIndex()+2);
             } else {
 //                System.out.println("   token: " + str.substring(ic.firstIndex, ic.lastIndex+1));
-                str = str.substring(0, ic.firstIndex) + str.substring(ic.lastIndex+1);
+                str = str.substring(0, ic.getFirstIndex()) + str.substring(ic.getLastIndex()+1);
             }
         }
         System.out.println("strFirst: " + strFirst);
@@ -769,16 +769,50 @@ public class FlowParser {
 }
 
 class IndexClass implements Comparable<IndexClass>{
-    int index, firstIndex, lastIndex;
-    String type;
-
+    private int index, firstIndex, lastIndex;
+    private String type;
+    
+    public int getIndex() {
+        return this.index;
+    }   
+    
+    public int getFirstIndex() {
+        return this.firstIndex;
+    }    
+    
+    public int getLastIndex() {
+        return this.lastIndex;
+    }    
+    
+    public String getType() {
+        return this.type;
+    }
+    
+    public void setIndex(int index) {
+        this.index = index;
+    }   
+    
+    public void setFirstIndex(int firstIndex) {
+        this.firstIndex = firstIndex;
+    }    
+    
+    public void setLastIndex(int lastIndex) {
+        this.lastIndex = lastIndex;
+    }    
+    
+    public void setType(String type) {
+        this.type = type;
+    }
+    
+    @Override
     public int compareTo(IndexClass ic) {
         return index > ic.index ? 1 : (index == ic.index ? 0 : -1);
     }
 }
 
 class IndexComparator implements Comparator<IndexClass> {
+    @Override
     public int compare(IndexClass ic1, IndexClass ic2){
-        return ic1.firstIndex > ic2.firstIndex ? - 1 : (ic1.firstIndex == ic2.firstIndex ? 0 : 1);
+        return ic1.getFirstIndex() > ic2.getFirstIndex() ? - 1 : (ic1.getFirstIndex() == ic2.getFirstIndex() ? 0 : 1);
     }
 }
