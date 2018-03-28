@@ -1,29 +1,23 @@
 package launch;
 
-import Servlet.HelloServlet;
-import Servlet.HelloServlet.FlowMetadata;
-import Servlet.HelloServlet.RawData;
-import Servlet.HelloServlet.ResponseRawData;
-import Servlet.HelloServlet.Variable;
+import Servlet.ParserController;
+import Servlet.ParserController.FlowMetadata;
+import Servlet.ParserController.RawData;
+import Servlet.ParserController.ResponseRawData;
 import com.google.gson.Gson;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.apache.commons.lang3.StringUtils;
 
-//import org.apache.catalina.WebResourceRoot;
-//import org.apache.catalina.core.StandardContext;
-//import org.apache.catalina.startup.Tomcat;
-//import org.apache.catalina.webresources.DirResourceSet;
-//import org.apache.catalina.webresources.StandardRoot;
-
-public class Main {
+public class FlowParser {
 
     public static Set<String> getActionCallsFU(FlowMetadata md, HashMap<String, String> vars) {
         List<Object> actionCalls = md.actionCalls;
@@ -427,9 +421,9 @@ public class Main {
     }
 
     /**
-     * Not Chatter String Values support only expression like {!SObject.Name} where SObject is key in map(vars)
-     * All other cases like {![Account].Name} or {! SObject.Name} don't have any affects on expression it will be only strings.
-    */
+    * Not Chatter String Values support only expression like {!SObject.Name} where SObject is key in map(vars)
+    * All other cases like {![Account].Name} or {! SObject.Name} don't have any affects on expression it will be only strings.
+    **/
     public static Set<String> setOfParsedStringValues(Set<String> res, Set<String> stringValues, HashMap<String, String> vars) {
         System.out.println("setOfParsedStringValues: {");
         String startOfExpression = "[{]!";
@@ -440,7 +434,6 @@ public class Main {
         String middleExpressionForValueRegex = exprssionForObjectCasses + caseForField1;
         String stringValueRegexPart3 = startOfExpression + middleExpressionForValueRegex + endOfExpression;
         String stringValueRegex =  stringValueRegexPart3;
-//        System.out.println("stringValueRegex: " + stringValueRegex );
         Pattern p = Pattern.compile(stringValueRegex);
         Set<String> allMatches = new HashSet<>();
         
@@ -476,30 +469,21 @@ public class Main {
     public static Set<String> setOfParsedFormulas(Set<String> res, Set<String> stringValues, HashMap<String, String> vars) {
         System.out.println("setOfParsedFormulas: {");
 
-        String startOfExpression = "[{]![$]?";
         String swlanmtoubl = "[a-zA-Z]" + "(?!\\w*___\\w*)\\w*";
-        String caseForField1 = "([.]" + swlanmtoubl + ")*";
-        String exprssionForObjectCasses = swlanmtoubl;
-        String endOfExpression = "[}]";
-        String stringValueRegexPart2 = "\\u0024Setup[.]" + exprssionForObjectCasses + caseForField1;
-        String middleExpressionForValueRegex = "(\\s)*" + exprssionForObjectCasses + caseForField1 + "(\\s)*";
-        String temporaryItem1 = "((('[^']*')|(\"[^\"]*\")|(" + exprssionForObjectCasses + caseForField1 + "))((\\s)*[+](\\s)*))*";
-        String temporaryItem2 = "(((\\s)*[+](\\s)*)(('[^']*')|(\"[^\"]*\")|(" + exprssionForObjectCasses + caseForField1 + ")))*";
-        String stringValueRegexPart3 = startOfExpression + "(\\s)*" + temporaryItem1 + "(" +
-                                       middleExpressionForValueRegex + ")" + temporaryItem2 + "(\\s)*" + endOfExpression;
-        String stringValueRegex = "((" + stringValueRegexPart2 +  ")|(" + stringValueRegexPart3 + "))";
-
+        String stringValueRegex = swlanmtoubl + "([.]" + swlanmtoubl + ")+";
+        System.out.println("stringValueRegex: " + stringValueRegex);
         Pattern p = Pattern.compile(stringValueRegex);
         Set<String> allMatches = new HashSet<>();
         
-        stringValues.stream().map((sValue) -> p.matcher(sValue)).forEachOrdered((m) -> {
-            while (m.find()) {
+        for (String sValue : stringValues) {
+            Matcher m = p.matcher(getStringWhichContainOblyField(sValue));
+            while(m.find()) {
                 allMatches.add(m.group());
             }
-        });
+        }
+
         allMatches.stream().map((m) -> 
-                m.replaceAll("((\"[^\"]*\")|('[^']*')|([}{!]))", "").replaceAll("[+]", " ")).forEachOrdered((mKey) -> 
-                {
+                m.replaceAll("[}{!)(]", "").replaceAll("[+]", " ")).forEachOrdered((mKey) -> {
                     for (String s : mKey.split(" ")) {
                         if (s.isEmpty()) { continue; }
                         Boolean isKeyMatch = false;
@@ -542,15 +526,14 @@ public class Main {
                     }
         });
         System.out.println("}");
-//        System.out.println("((('[^']*')|(\"[^\"]*\")|(" + exprssionForObjectCasses + caseForField1 + caseForField2 + "))((\\s)*[+](\\s)*))*");
         return res;
     }
 
     
     /**
-     * Chatter String Values support only: expression like {!SObject.Name} where SObject is key in map(vars) and {![Account].Name}
-     * All other cases like {! [Account].Name} or {! SObject.Name} don't have any affects on expression it will be only strings.
-    */
+    * Chatter String Values support only: expression like {!SObject.Name} where SObject is key in map(vars) and {![Account].Name}
+    * All other cases like {! [Account].Name} or {! SObject.Name} don't have any affects on expression it will be only strings.
+    **/
     public static Set<String> setOfParsedChatterStringValues(FlowMetadata md, HashMap<String, String> vars) {
         //For chatter message
         List<Object> actionCalls = md.actionCalls;
@@ -654,22 +637,136 @@ public class Main {
         return res;
     }
     
-    public class ItemValue {
-        public String elementReference;
-        public String stringValue;
-    }
+    public static String getStringWhichContainOblyField(String str) {
     
+        int braceIndex = str.indexOf("'");
+        int notBraceIndex = str.indexOf("\\'");
+        int doubleBraceIndex = str.indexOf("\"");
+        int notDoubleBraceIndex = str.indexOf("\\\"");
+        int openCommentIndex = str.indexOf("/*");
+        int closeCommentIndex = str.indexOf("*/");
+        
+        Set<Integer> notBraceIndexes = new HashSet<>();
+        Set<Integer> notDoubleBraceIndexes = new HashSet<>();
+        Set<Integer> openCommentIndexes = new HashSet<>();
+        Set<IndexClass> sortedIndexes = new TreeSet<>();
+        
+        while (notBraceIndex >= 0) {
+//            System.out.println("notBraceIndex: " + notBraceIndex);
+            notBraceIndexes.add(notBraceIndex + 1);
+            notBraceIndex = str.indexOf("\\'", notBraceIndex + 1);
+        }
+        
+        while (notDoubleBraceIndex >= 0) {
+//            System.out.println("notDoubleBraceIndex: " + notDoubleBraceIndex);
+            notDoubleBraceIndexes.add(notDoubleBraceIndex + 1);
+            notDoubleBraceIndex = str.indexOf("\\\"", notDoubleBraceIndex + 1);
+        }
+                
+        while (braceIndex >= 0) {
+            if (notBraceIndexes.contains(braceIndex)) {
+                braceIndex = str.indexOf("'", braceIndex + 1);
+                continue;
+            }
+            IndexClass ic = new IndexClass();
+            ic.index = braceIndex;
+            ic.type = "braceIndex";
+            sortedIndexes.add(ic);
+//            System.out.println("braceIndex: " + braceIndex);
+            braceIndex = str.indexOf("'", braceIndex + 1);
+        }
+        
+        while (doubleBraceIndex >= 0) {
+            if (notDoubleBraceIndexes.contains(doubleBraceIndex)) {
+                doubleBraceIndex = str.indexOf("\"", doubleBraceIndex + 1);
+                continue;
+            }
+            IndexClass ic = new IndexClass();
+            ic.index = doubleBraceIndex;
+            ic.type = "doubleBraceIndex";
+            sortedIndexes.add(ic);
+//            System.out.println("doubleBraceIndex: " + doubleBraceIndex);
+            doubleBraceIndex = str.indexOf("\"", doubleBraceIndex + 1);
+        }
+                
+        while (openCommentIndex >= 0) {
+            IndexClass ic = new IndexClass();
+            ic.index = openCommentIndex;
+            ic.type = "openCommentIndex";
+            sortedIndexes.add(ic);
+//            System.out.println("openCommentIndex: " + openCommentIndex);
+            openCommentIndexes.add(openCommentIndex);
+            openCommentIndex = str.indexOf("/*", openCommentIndex + 1);
+        }
+                        
+        while (closeCommentIndex >= 0) {    
+            if (openCommentIndexes.contains(closeCommentIndex-1)) {
+                closeCommentIndex = str.indexOf("*/", closeCommentIndex + 1);
+                continue;
+            }
+            IndexClass ic = new IndexClass();
+            ic.index = closeCommentIndex;
+            ic.type = "closeCommentIndex";
+            sortedIndexes.add(ic);
+//            System.out.println("closeCommentIndex: " + closeCommentIndex);
+            closeCommentIndex = str.indexOf("*/", closeCommentIndex + 1);
+        }
+        
+        Set<IndexClass> indexesForDelete = new TreeSet<>(new IndexComparator());
+//        Set<IndexClass> indexesForDelete = new HashSet<>();
+        boolean isStartIndexFound = false;
+        boolean needCheck = false;
+        String indexType = "";
+        int firstIndex = -1;
+        int lastIndex = -1;
+        for (IndexClass ic : sortedIndexes) {
+//            System.out.println("ic: " + ic.index + ", type: " + ic.type);
+            if (indexType == ic.type) {
+                lastIndex = ic.index;
+                isStartIndexFound = false;
+                IndexClass icDeleted = new IndexClass();
+                icDeleted.firstIndex = firstIndex;
+                icDeleted.lastIndex = lastIndex;
+                icDeleted.type = indexType;
+                indexesForDelete.add(icDeleted);
+                indexType = "";
+                firstIndex = -1;
+                lastIndex = -1;
+                isStartIndexFound = false;
+                needCheck = true;
+            }
+            
+            if (!isStartIndexFound && !needCheck) {
+                firstIndex = ic.index;
+                indexType = ic.type == "openCommentIndex" ? "closeCommentIndex" : ic.type ;
+                isStartIndexFound = true;
+            }
+            needCheck = false;
+
+        }
+        String strFirst = str;
+        for (IndexClass ic : indexesForDelete) {
+//            System.out.println("index: " + ic.index + ", firstIndex: " + ic.firstIndex + ", lastIndex: " + ic.lastIndex + ", type: " + ic.type);
+            if (ic.type == "closeCommentIndex") {
+//                System.out.println("   token: " + str.substring(ic.firstIndex, ic.lastIndex+2));
+                str = str.substring(0, ic.firstIndex) + str.substring(ic.lastIndex+2);
+            } else {
+//                System.out.println("   token: " + str.substring(ic.firstIndex, ic.lastIndex+1));
+                str = str.substring(0, ic.firstIndex) + str.substring(ic.lastIndex+1);
+            }
+        }
+        System.out.println("strFirst: " + strFirst);
+//        str = str.replaceAll("\\s", "");
+        System.out.println("     str: " + str);
+        return str;
+    
+    }
     
     public static void main(String[] args) throws Exception {
         
-//        System.out.println(HelloServlet.returnJsonString());
-        String bodyStr = HelloServlet.returnJsonString();
-//        System.out.println(bodyStr);
+        String bodyStr = ParserController.returnJsonString();
         ResponseRawData rawD = new Gson().fromJson(bodyStr, ResponseRawData.class);
-//        System.out.println(rawD.toString());
-//        System.out.println(rawD.rawData.toString());
-//        System.out.println(rawD.rawData.Metadata.toString());
-//        System.out.println(rawD.rawData.Metadata.variables.toString());
+        if (rawD == null) { return; }
         Set<String> superReturn = new HashSet<>();
         int i = 1;
         for (RawData rd : rawD.rawData) {
@@ -696,40 +793,32 @@ public class Main {
 //            System.out.println("\n\n8: getProcessMetadataValuesFromMDFU Response : " + getProcessMetadataValuesFromMDFU(rd.Metadata, vars));
 //            System.out.println("\n\n9: setOfParsedChatterStringValues Response : " + setOfParsedChatterStringValues(rd.Metadata, vars));
             
-            superReturn.addAll(HelloServlet.returnAllFields(rd.Metadata, vars));
-            
-//            System.out.println("returnAllFields: " + HelloServlet.returnAllFields(rd.Metadata, vars));
-            
-//            String m = "{!Name + \"vcflsdakf\" + 'vxc{!name}' + name2}";
-//            String mKey = m.replaceAll("'[^']*'", "").replaceAll("\"[^\"]*\"", "").replace("[", "").replace("]", "").replace("{!", "").replace("}", "").replace("+", " ").trim();
-//            String[] mList = mKey.split(" ");
-//            for (String s : mList) {
-//                if (s.isEmpty()) { continue; }
-//                System.out.println("s: " + s);
-//            }
-            
+            superReturn.addAll(ParserController.returnAllFields(rd.Metadata, vars));
+
         }
         System.out.println("\n\nsuperReturn: " + new Gson().toJson(superReturn));
-//        String expression ="{!SecondValid_2.Name} .{!NotValid_2,Name }{!NotValid_2,Name {!SecondValid_7.Name} }{! NotValid_1.Name} {!NotValid_3.name__r.__c} {![FirstValid__c].Name__r.createdBy.Id}{!{!{!Valid_4.Name__c}}{!SecondValid_2.Name}{![ThirdValid].createdBy.Name}";
-//        expression = "{!SObject.Name} + .{![Account__c].Name}...{![Account2].Name}.. ...{!SObject} {![asddsa__c]} ..{!dsaasd} {!dsaasd2__c}";
-//        
-//        HashMap<String, String> vars = new HashMap<>();
-//        vars.put("SObject", "Account");
-//        vars.put("SObject2", "Account2");
-//        vars.put("asddsa", "asddsa__c");
-//        vars.put("dsaasd", "dsaasd__c");
-//        vars.put("dsaasd2", "dsaasd2__c");
-//        
-//        String abc = "";
-//        HashMap<String, Object> flow;
-////        flow = (HashMap<String, Object>) new Gson().fromJson(abc, (HashMap<String, Object>).class);
-//        Set<String> stringValues = new HashSet<>();
-//        stringValues.add(expression);
-//        
-//        String body = "{ \"rawData\": { \"Metadata\": { \"variables\": [{ \"asd\" : \"zxc\"}, { \"123\" : \"456\"}] } }, \"token\": \"ASDYQW127BFYWEBCAQWUQWNCE38ASDNCNUEO12\" }";
-//        ResponseRawData rawD = new Gson().fromJson(body, ResponseRawData.class);
-//        System.out.println(rawD.toString());
         
     }
     
+    public class ItemValue {
+        public String elementReference;
+        public String stringValue;
+    }
+    
+    
+}
+
+class IndexClass implements Comparable<IndexClass>{
+    int index, firstIndex, lastIndex;
+    String type;
+
+    public int compareTo(IndexClass ic) {
+        return index > ic.index ? 1 : (index == ic.index ? 0 : -1);
+    }
+}
+
+class IndexComparator implements Comparator<IndexClass> {
+    public int compare(IndexClass ic1, IndexClass ic2){
+        return ic1.firstIndex > ic2.firstIndex ? - 1 : (ic1.firstIndex == ic2.firstIndex ? 0 : 1);
+    }
 }
