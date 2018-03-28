@@ -15,26 +15,27 @@ import org.apache.commons.lang3.StringUtils;
 
 public class Parser {
 
-    protected static String parse(String item){
-
+    public static String parse(String item){
         ResponseRawData rawD = new Gson().fromJson(item, ResponseRawData.class);
         if (rawD == null) {
             return new Gson().toJson(new ArrayList<>()); 
         }
-
+        
         Set<String> result = new HashSet<>();
         rawD.rawData.forEach((rd) -> {
+            
             HashMap<String, String> vars = new HashMap<String, String>();
-            rd.Metadata.variables.forEach((var) -> {
+            rd.Metadata.variables.stream().filter((var) -> !(StringUtils.isBlank(var.objectType))).forEachOrdered((var) -> {
                 vars.put(var.name, var.objectType);
             });
+            
 //            vars.forEach((k,v)->{
 //                System.out.println("\nkey: " + k + ", value: " + v);
-//            }); 
+//            });
+
             result.addAll(getAllFieldsFromMD(rd.Metadata, vars));
         });
         return new Gson().toJson(result); 
-        
     }
         
     public static Set<String> getAllFieldsFromMD(FlowMetadata metadata, HashMap<String, String> vars) {
@@ -214,7 +215,7 @@ public class Parser {
         }
         elementReferences.forEach((eR) -> {
             for (String key : vars.keySet()) {
-                if (eR.startsWith(key + ".") || eR.equals(key)) {  
+                if (eR.startsWith(key + ".") || eR.equals(key)) {
                     eR = eR.replace(key, vars.get(key)) + (eR.contains(".") ? "" : ".Id");
                     System.out.println("eR: " + eR);
                     res.add(eR);
