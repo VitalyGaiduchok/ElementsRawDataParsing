@@ -39,19 +39,7 @@ public class ParserController extends HttpServlet {
             resp.setStatus(403);
             return; 
         }
-
-        Set<String> result = new HashSet<>();
-        rawD.rawData.forEach((rd) -> {
-            HashMap<String, String> vars = new HashMap<String, String>();
-            rd.Metadata.variables.forEach((var) -> {
-                vars.put(var.name, var.objectType);
-            });
-            vars.forEach((k,v)->{
-                System.out.println("\nkey: " + k + ", value: " + v);
-            }); 
-            result.addAll(getAllFieldsFromMD(rd.Metadata, vars));
-        });
-        resp.getWriter().append(new Gson().toJson(result));
+        resp.getWriter().append(new Gson().toJson(Parser.parse(bodyStr)));
         resp.setStatus(200);
 
     }
@@ -80,22 +68,6 @@ public class ParserController extends HttpServlet {
         public String name;
         public String objectType;
         public String dataType;
-    }
-    
-    public static Set<String> getAllFieldsFromMD(FlowMetadata metadata, HashMap<String, String> vars) {
-        Set<String> res = new HashSet<>();
-        res.addAll(FlowParser.getActionCallsFU(metadata, vars));
-        res.addAll(FlowParser.getAssignmentsFU(metadata, vars));
-        res.addAll(FlowParser.getDecisionsFU(metadata, vars));
-        res.addAll(FlowParser.getRecordCreatesFU(metadata, vars));
-        res.addAll(FlowParser.getRecordLookupsFU(metadata, vars));
-        res.addAll(FlowParser.getRecordUpdatesFU(metadata, vars));
-        res.addAll(FlowParser.getFlowFormulasFU(metadata, vars));
-        res.addAll(FlowParser.getProcessMetadataValuesFromMDFU(metadata, vars));
-        res.addAll(FlowParser.setOfParsedChatterStringValues(metadata, vars));
-        System.out.println("  this res:" + res.toString());
-        System.out.println("------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
-        return res;
     }
     
 }

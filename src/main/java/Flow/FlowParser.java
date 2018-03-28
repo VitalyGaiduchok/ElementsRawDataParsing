@@ -1,8 +1,8 @@
 package Flow;
 
-import Flow.ParserController.FlowMetadata;
-import Flow.ParserController.RawData;
-import Flow.ParserController.ResponseRawData;
+import Flow.Parser.FlowMetadata;
+import Flow.Parser.RawData;
+import Flow.Parser.ResponseRawData;
 import com.google.gson.Gson;
 import java.util.ArrayList;
 import java.util.Comparator;
