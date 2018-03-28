@@ -60,7 +60,7 @@ public class ParserController extends HttpServlet {
             vars.forEach((k,v)->{
                 System.out.println("\nkey: " + k + ", value: " + v);
             }); 
-            result.addAll(returnAllFields(rd.Metadata, vars));
+            result.addAll(getAllFieldsFromMD(rd.Metadata, vars));
 
         }
         resp.getWriter().append(new Gson().toJson(result));
@@ -94,7 +94,7 @@ public class ParserController extends HttpServlet {
         public String dataType;
     }
     
-    public static Set<String> returnAllFields(FlowMetadata metadata, HashMap<String, String> vars) {
+    public static Set<String> getAllFieldsFromMD(FlowMetadata metadata, HashMap<String, String> vars) {
         Set<String> res = new HashSet<>();
         res.addAll(FlowParser.getActionCallsFU(metadata, vars));
         res.addAll(FlowParser.getAssignmentsFU(metadata, vars));
