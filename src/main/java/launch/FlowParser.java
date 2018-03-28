@@ -421,8 +421,8 @@ public class FlowParser {
     }
 
     /**
-    * Not Chatter String Values support only expression like {!SObject.Name} where SObject is key in map(vars)
-    * All other cases like {![Account].Name} or {! SObject.Name} don't have any affects on expression it will be only strings.
+     * Not Chatter String Values support only expression like {!SObject.Name} where SObject is key in map(vars)
+     * All other cases like {![Account].Name} or {! SObject.Name} don't have any affects on expression it will be only strings.
     **/
     public static Set<String> setOfParsedStringValues(Set<String> res, Set<String> stringValues, HashMap<String, String> vars) {
         System.out.println("setOfParsedStringValues: {");
@@ -531,8 +531,8 @@ public class FlowParser {
 
     
     /**
-    * Chatter String Values support only: expression like {!SObject.Name} where SObject is key in map(vars) and {![Account].Name}
-    * All other cases like {! [Account].Name} or {! SObject.Name} don't have any affects on expression it will be only strings.
+     * Chatter String Values support only: expression like {!SObject.Name} where SObject is key in map(vars) and {![Account].Name}
+     * All other cases like {! [Account].Name} or {! SObject.Name} don't have any affects on expression it will be only strings.
     **/
     public static Set<String> setOfParsedChatterStringValues(FlowMetadata md, HashMap<String, String> vars) {
         //For chatter message
@@ -756,7 +756,7 @@ public class FlowParser {
             }
         }
         System.out.println("strFirst: " + strFirst);
-//        str = str.replaceAll("\\s", "");
+        str = str.replaceAll("\\s", "");
         System.out.println("     str: " + str);
         return str;
     
