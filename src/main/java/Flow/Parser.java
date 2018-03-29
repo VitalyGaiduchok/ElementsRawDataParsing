@@ -25,17 +25,18 @@ public class Parser {
         
         Set<String> result = new HashSet<>();
         rawD.rawData.forEach((rd) -> {
-            
-            HashMap<String, String> vars = new HashMap<String, String>();
-            rd.Metadata.variables.stream().filter((var) -> !(StringUtils.isBlank(var.objectType))).forEachOrdered((var) -> {
-                vars.put(var.name, var.objectType);
-            });
-            
+            if (rd.Metadata != null) { 
+                HashMap<String, String> vars = new HashMap<>();
+                rd.Metadata.variables.stream().filter((var) -> !(StringUtils.isBlank(var.objectType))).forEachOrdered((var) -> {
+                    vars.put(var.name, var.objectType);
+                });
+
 //            vars.forEach((k,v)->{
 //                //System.out.println("\nkey: " + k + ", value: " + v);
 //            });
-            //System.out.println("{\"rd\" : " + new Gson().toJson(rd.Metadata) + "}");
-            result.addAll(getAllFieldsFromMD(rd.Metadata, vars));
+                //System.out.println("{\"rd\" : " + new Gson().toJson(rd.Metadata) + "}");
+                result.addAll(getAllFieldsFromMD(rd.Metadata, vars));
+            }
         });
         System.out.println("{\"parseResult\" : " + new Gson().toJson(result) + "}");
         return new Gson().toJson(result); 
