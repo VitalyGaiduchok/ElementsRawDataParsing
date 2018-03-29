@@ -15,6 +15,9 @@ import org.apache.commons.lang3.StringUtils;
 public class Parser {
 
     public static String parse(String item){
+        if (StringUtils.isBlank(item)) {
+            return new Gson().toJson(new ArrayList<>()); 
+        }
         ResponseRawData rawD = new Gson().fromJson(item, ResponseRawData.class);
         if (rawD == null) {
             return new Gson().toJson(new ArrayList<>()); 
@@ -480,7 +483,7 @@ public class Parser {
             return mKey; 
         }).forEachOrdered((mKey) -> {
             String keyMatch = mKey;
-            String resultItem;
+            String resultItem = "";
             if (mKey.contains(".")) {
                 keyMatch = mKey.substring(0, mKey.indexOf("."));
                 if (vars.containsKey(keyMatch)) {
@@ -516,14 +519,14 @@ public class Parser {
         });
 
         allMatches.stream().map((m) -> 
-                m.replaceAll("[}{!)(]", "").replaceAll("[+]", " ")).forEachOrdered((mKey) -> {
+                fastReplace(m.replaceAll("[}{!)(]", ""), "+", " ")).forEachOrdered((mKey) -> {
                     for (String s : mKey.split(" ")) {
                         if (s.isEmpty()) { continue; }
                         Boolean isKeyMatch = false;
                         String keyMatch = s;
                         if (s.startsWith("$Setup.")) {
-                            keyMatch = s.replace("$Setup.", "");
-                            String resultItem = keyMatch.replaceAll(" ", "");
+                            keyMatch = fastReplace(s, "$Setup.", "");
+                            String resultItem = fastReplace(keyMatch, " ", "");
                             if (!keyMatch.contains(".")) {
                                 resultItem = resultItem + ".Id";
                             }
@@ -531,29 +534,29 @@ public class Parser {
                             keyMatch = resultItem;
                             isKeyMatch = true;
                         } else if (s.contains(".")) {
-                            keyMatch = s.replace("$", "").substring(0, s.indexOf("."));
+                            keyMatch = fastReplace(s, "$", "").substring(0, s.indexOf("."));
                             if (vars.containsKey(keyMatch)) {
                                 String resultItem = s.replace(keyMatch, vars.get(keyMatch));
-                                resultItem = resultItem.replaceAll(" ", "");
+                                resultItem = fastReplace(resultItem, " ", "");
                                 res.add(resultItem);
                                 isKeyMatch = true;
                                 keyMatch = resultItem;
                             }
                         } else {
-                            keyMatch =  s.replace("$", "");
+                            keyMatch = fastReplace(s, "$", "");
                             if (vars.containsKey(keyMatch)) {
                                 String resultItem = s.replace(keyMatch, vars.get(keyMatch));
-                                resultItem = resultItem.replaceAll(" ", "") + ".Id";
+                                resultItem = fastReplace(resultItem, " ", "") + ".Id";
                                 res.add(resultItem);
                                 isKeyMatch = true;
                                 keyMatch = resultItem;
                             }
                         }
                         if (!isKeyMatch) {
-                            keyMatch = s.replaceAll("[$]", "") + ((keyMatch.contains(".") || s.contains("."))  ? "" : ".Id");
+                            keyMatch = fastReplace(s, "$", "") + ((keyMatch.contains(".") || s.contains("."))  ? "" : ".Id");
                             res.add(keyMatch);
                         }
-                        //System.out.println("         s: " + s.replaceFirst("[$]", ""));
+                        //System.out.println("         s: " + fastReplace(s, "$", ""));
                         //System.out.println("resultItem: " + keyMatch);
                     }
         });
@@ -743,7 +746,6 @@ public class Parser {
         }
         
         Set<IndexClass> indexesForDelete = new TreeSet<>(new IndexComparator());
-//        Set<IndexClass> indexesForDelete = new HashSet<>();
         boolean isStartIndexFound = false;
         boolean needCheck = true;
         String indexType = "";
@@ -774,22 +776,44 @@ public class Parser {
             needCheck = true;
 
         }
-//        String strFirst = str;
+        StringBuffer bodyStr = new StringBuffer(str);
         for (IndexClass ic : indexesForDelete) {
 //            //System.out.println("index: " + ic.index + ", firstIndex: " + ic.firstIndex + ", lastIndex: " + ic.lastIndex + ", type: " + ic.type);
             if (ic.getType() == "closeCommentIndex") {
 //                //System.out.println("   token: " + str.substring(ic.firstIndex, ic.lastIndex+2));
-                str = str.substring(0, ic.getFirstIndex()) + str.substring(ic.getLastIndex()+2);
+                bodyStr.delete(ic.getFirstIndex(), ic.getLastIndex()+2);
             } else {
 //                //System.out.println("   token: " + str.substring(ic.firstIndex, ic.lastIndex+1));
-                str = str.substring(0, ic.getFirstIndex()) + str.substring(ic.getLastIndex()+1);
+                bodyStr.delete(ic.getFirstIndex(), ic.getLastIndex()+1);
             }
         }
-        //System.out.println("received field: " + strFirst);
-        str = str.replaceAll("\\s", "");
+        //System.out.println("received field: " + str);
+//        str = str.replaceAll("\\s", "");
+        str = fastReplace(bodyStr.toString(), " ", "");
         //System.out.println("  result field: " + str);
         return str;
     
+    }
+    
+    static String fastReplace(String str, String target, String replacement) {
+        int targetLength = target.length();
+        if (targetLength == 0) {
+            return str;
+        }
+        int idx2 = str.indexOf(target);
+        if (idx2 < 0) {
+            return str;
+        }
+        StringBuilder buffer = new StringBuilder(targetLength > replacement.length() ? str.length() : str.length() * 2);
+        int idx1 = 0;
+        do {
+            buffer.append( str, idx1, idx2 );
+            buffer.append( replacement );
+            idx1 = idx2 + targetLength;
+            idx2 = str.indexOf( target, idx1 );
+        } while( idx2 > 0 );
+        buffer.append(str, idx1, str.length());
+        return buffer.toString();
     }
     
     public class ResponseRawData {
