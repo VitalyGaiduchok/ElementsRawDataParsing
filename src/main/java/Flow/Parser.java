@@ -24,7 +24,7 @@ public class Parser {
         }
         
         Set<String> result = new HashSet<>();
-        rawD.rawData.forEach((rd) -> {
+        rawD.body.forEach((rd) -> {
             if (rd.Metadata != null) { 
                 HashMap<String, String> vars = new HashMap<>();
                 rd.Metadata.variables.stream().filter((var) -> !(StringUtils.isBlank(var.objectType))).forEachOrdered((var) -> {
@@ -819,7 +819,7 @@ public class Parser {
     }
     
     public class ResponseRawData {
-        public ArrayList<RawData> rawData;
+        public ArrayList<RawData> body;
     }
 
     public class RawData {
