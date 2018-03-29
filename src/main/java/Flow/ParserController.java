@@ -33,7 +33,7 @@ public class ParserController extends HttpServlet {
 
         ResponseRawData rawD = new Gson().fromJson(bodyStr.toString(), ResponseRawData.class);
         if (rawD == null) {
-            Map<String, String> respMap = new HashMap<String, String>();
+            Map<String, String> respMap = new HashMap<>();
             respMap.put("error", "Bad request body.");
             resp.getWriter().append(new Gson().toJson(respMap));
             resp.setStatus(403);
