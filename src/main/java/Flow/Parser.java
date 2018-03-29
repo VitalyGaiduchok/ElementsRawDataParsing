@@ -9,7 +9,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.apache.commons.lang3.StringUtils;
 
@@ -30,11 +29,12 @@ public class Parser {
             });
             
 //            vars.forEach((k,v)->{
-//                System.out.println("\nkey: " + k + ", value: " + v);
+//                //System.out.println("\nkey: " + k + ", value: " + v);
 //            });
 
             result.addAll(getAllFieldsFromMD(rd.Metadata, vars));
         });
+        System.out.println("{\"parseResult\" : " + new Gson().toJson(result) + "}");
         return new Gson().toJson(result); 
     }
         
@@ -49,8 +49,8 @@ public class Parser {
         res.addAll(getFlowFormulasFU(metadata, vars));
         res.addAll(getProcessMetadataValuesFromMDFU(metadata, vars));
         res.addAll(setOfParsedChatterStringValues(metadata, vars));
-        System.out.println("  this res:" + res.toString());
-        System.out.println("------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
+        //System.out.println("  this res:" + res.toString());
+        //System.out.println("------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
         return res;
     }
     
@@ -59,10 +59,9 @@ public class Parser {
         Set<String> res = new HashSet<>();
         
         if (actionCalls.isEmpty()) { 
-            System.out.println("actionCalls: ");
+            //System.out.println("actionCalls: ");
             return setOfParsedStringValues(res, new HashSet<>(), vars);
         }
-        String rd = "";
         Set<String> elementReferences = new HashSet<>();
         Set<String> stringValues = new HashSet<>();
         for (Object obj : actionCalls) {
@@ -108,6 +107,7 @@ public class Parser {
             }
 
         }
+        
         for(String eR : elementReferences) {
             for (String key : vars.keySet()) {
                 if (eR.startsWith(key + ".") || eR.equals(key)) {  
@@ -117,7 +117,7 @@ public class Parser {
                 }
             }
         }
-        System.out.println("actionsCalls: ");
+        //System.out.println("actionsCalls: ");
         res = setOfParsedStringValues(res, stringValues, vars);
         return res;
     }
@@ -126,19 +126,18 @@ public class Parser {
         List<Object> assignments = (List<Object>) md.assignments;
         Set<String> res = new HashSet<>();
         if (assignments.isEmpty()) { 
-            System.out.println("assignements: ");
+            //System.out.println("assignements: ");
             return setOfParsedStringValues(res, new HashSet<>(), vars);
         }
-        String rd = "";
         List<Object> assignmentItems = new ArrayList<>();
         assignments.stream().map((obj) -> (Map<String, Object>) obj).forEachOrdered((item) -> {
             assignmentItems.add(item.get("assignmentItems"));
         });
         List<Object> allItems = new ArrayList<>();
         assignmentItems.forEach((obj) -> { 
-            for (Object item : (List<Object>) obj) {
+            ((List<Object>) obj).forEach((item) -> {
                 allItems.add(item);
-            }
+            });
         });
         Set<String> elementReferences = new HashSet<>();
         Set<String> stringValues = new HashSet<>();
@@ -178,7 +177,7 @@ public class Parser {
                 }
             }
         }
-        System.out.println("assignements: ");
+        //System.out.println("assignements: ");
         return setOfParsedStringValues(res, stringValues, vars);
     }
     
@@ -217,13 +216,13 @@ public class Parser {
             for (String key : vars.keySet()) {
                 if (eR.startsWith(key + ".") || eR.equals(key)) {
                     eR = eR.replace(key, vars.get(key)) + (eR.contains(".") ? "" : ".Id");
-                    System.out.println("eR: " + eR);
+                    //System.out.println("eR: " + eR);
                     res.add(eR);
                     break;
                 }
             }
         });
-        System.out.println("decisions: ");
+        //System.out.println("decisions: ");
         return setOfParsedStringValues(res, stringValues, vars);
     }
     
@@ -290,15 +289,15 @@ public class Parser {
                                         });
                                     }
         }
-        for(String eR : elementReferences) {
+        elementReferences.forEach((eR) -> {
             for (String key : vars.keySet()) {
                 if (eR.startsWith(key + ".") || eR.equals(key)) {  
                     eR = eR.replace(key, vars.get(key));
                     res.add(eR);
                 }
             }
-        }
-        System.out.println("recordUpdate: ");
+        });
+        //System.out.println("recordUpdate: ");
         return setOfParsedStringValues(res, stringValues, vars);
     }
     
@@ -306,7 +305,7 @@ public class Parser {
         List<Object> recordLookups = (List<Object>) md.recordLookups;
         Set<String> res = new HashSet<>();
         if (recordLookups.isEmpty()) { return res; }
-        String recordLookupRD = "";
+        String recordLookupRD;
         Set<String> elementReferences = new HashSet<>();
         Set<String> stringValues = new HashSet<>();
         for (Object obj : recordLookups) {
@@ -340,21 +339,21 @@ public class Parser {
             }
             List<Object> queriedFields = (List<Object> ) item.get("queriedFields");
             if (queriedFields != null) {
-                for (Object field : queriedFields) {
+                queriedFields.forEach((field) -> {
                     res.add(objectName + "." + field);
-                }
+                });
             }
             
         }
-        for(String eR : elementReferences) {
+        elementReferences.forEach((eR) -> {
             for (String key : vars.keySet()) {
                 if (eR.startsWith(key + ".") || eR.equals(key)) {  
                     eR = eR.replace(key, vars.get(key));
                     res.add(eR);
                 }
             }
-        }
-        System.out.println("recordLookup: ");
+        });
+        //System.out.println("recordLookup: ");
         return setOfParsedStringValues(res, stringValues, vars);
     }
     
@@ -388,13 +387,13 @@ public class Parser {
             for (String key : vars.keySet()) {
                 if (eR.startsWith(key + ".") || eR.equals(key)) {  
                     eR = eR.replace(key, vars.get(key)) + (eR.contains(".") ? "" : ".Id");
-                    System.out.println("eR: " + eR);
+                    //System.out.println("eR: " + eR);
                     res.add(eR);
                     break;
                 }
             }
         });
-        System.out.println("recordCreate: ");
+        //System.out.println("recordCreate: ");
         return setOfParsedStringValues(res, stringValues, vars);
     }
     
@@ -420,6 +419,7 @@ public class Parser {
         return setOfParsedFormulas(res, stringValues, vars);
     }
     
+    //ProcessMetadataValues on Metadata level in rawData json.
     public static Set<String> getProcessMetadataValuesFromMDFU(FlowMetadata md, HashMap<String, String> vars) {
         List<Object> processMetadataValues = (ArrayList<Object>) md.processMetadataValues;
         Set<String> res = new HashSet<>();
@@ -444,14 +444,14 @@ public class Parser {
             for (String key : vars.keySet()) {
                 if (eR.startsWith(key + ".") || eR.equals(key)) {  
                     eR = eR.replace(key, vars.get(key)) + (eR.contains(".") ? "" : ".Id");
-                    System.out.println("eR: " + eR);
+                    //System.out.println("eR: " + eR);
                     res.add(eR);
                     break;
                 }
             }
         });
         
-        System.out.println("processMetadataValues: ");
+        //System.out.println("processMetadataValues: ");
         return setOfParsedStringValues(res, stringValues, vars);
     }
 
@@ -460,7 +460,7 @@ public class Parser {
      * All other cases like {![Account].Name} or {! SObject.Name} don't have any affects on expression it will be only strings.
     **/
     public static Set<String> setOfParsedStringValues(Set<String> res, Set<String> stringValues, HashMap<String, String> vars) {
-        System.out.println("setOfParsedStringValues: {");
+        //System.out.println("setOfParsedStringValues: {");
         String startOfExpression = "[{]!";
         String swlanmtoubl = "[a-zA-Z]" + "((?!\\w*__\\w*)\\w*)*";
         String caseForField = "([.]" + "[a-zA-Z]" + "(?!\\w*___\\w*)\\w*" + "){0,10}";
@@ -480,7 +480,7 @@ public class Parser {
             return mKey; 
         }).forEachOrdered((mKey) -> {
             String keyMatch = mKey;
-            String resultItem = "";
+            String resultItem;
             if (mKey.contains(".")) {
                 keyMatch = mKey.substring(0, mKey.indexOf("."));
                 if (vars.containsKey(keyMatch)) {
@@ -493,28 +493,27 @@ public class Parser {
                     res.add(resultItem);
                 }
             }
-            System.out.println("         s: " + mKey);
-            System.out.println("resultItem: " + resultItem);
+            //System.out.println("         s: " + mKey);
+            //System.out.println("resultItem: " + resultItem);
         });
-        System.out.println("}");
+        //System.out.println("}");
         return res;
     }
         
     public static Set<String> setOfParsedFormulas(Set<String> res, Set<String> stringValues, HashMap<String, String> vars) {
-        System.out.println("setOfParsedFormulas: {");
+        //System.out.println("setOfParsedFormulas: {");
 
         String swlanmtoubl = "[a-zA-Z]" + "(?!\\w*___\\w*)\\w*";
         String stringValueRegex = swlanmtoubl + "([.]" + swlanmtoubl + "){1,10}";
-        System.out.println("stringValueRegex: " + stringValueRegex);
+        //System.out.println("stringValueRegex: " + stringValueRegex);
         Pattern p = Pattern.compile(stringValueRegex);
         Set<String> allMatches = new HashSet<>();
         
-        for (String sValue : stringValues) {
-            Matcher m = p.matcher(getStringWhichContainOblyField(sValue));
+        stringValues.stream().map((sValue) -> p.matcher(getStringWhichContainOblyField(sValue))).forEachOrdered((m) -> {
             while(m.find()) {
                 allMatches.add(m.group());
             }
-        }
+        });
 
         allMatches.stream().map((m) -> 
                 m.replaceAll("[}{!)(]", "").replaceAll("[+]", " ")).forEachOrdered((mKey) -> {
@@ -551,15 +550,14 @@ public class Parser {
                             }
                         }
                         if (!isKeyMatch) {
-//                          keyMatch = s.replaceAll(" ", "").replace("$", "");
-                            keyMatch = s.replaceAll("(([$])|())", "") + ((keyMatch.contains(".") || s.contains("."))  ? "" : ".Id");
+                            keyMatch = s.replaceAll("[$]", "") + ((keyMatch.contains(".") || s.contains("."))  ? "" : ".Id");
                             res.add(keyMatch);
                         }
-                        System.out.println("         s: " + s.replaceFirst("[$]", ""));
-                        System.out.println("resultItem: " + keyMatch);
+                        //System.out.println("         s: " + s.replaceFirst("[$]", ""));
+                        //System.out.println("resultItem: " + keyMatch);
                     }
         });
-        System.out.println("}");
+        //System.out.println("}");
         return res;
     }
 
@@ -573,7 +571,6 @@ public class Parser {
         List<Object> actionCalls = md.actionCalls;
         Set<String> res = new HashSet<>();
         if (actionCalls.isEmpty()) { return res; }
-        String rd = "";
         Set<String> elementReferences = new HashSet<>();
         Set<String> stringValues = new HashSet<>();
         for (Object obj : actionCalls) {
@@ -585,8 +582,7 @@ public class Parser {
                         (HashMap<String, Object>) new Gson().fromJson(new Gson().toJson(pmv), HashMap.class)).filter((pmvMap) -> 
                                 !(pmvMap.get("value") == null)).map((pmvMap) -> 
                                         (ItemValue) new Gson().fromJson(new Gson().toJson(pmvMap.get("value")), ItemValue.class)).filter((iValue) -> 
-                                                (iValue != null)).map((iValue) -> 
-                                                {
+                                                (iValue != null)).map((iValue) -> {
                                                     if (!StringUtils.isBlank(iValue.stringValue)) {
                                                         stringValues.add(iValue.stringValue);
                                                     }
@@ -601,8 +597,7 @@ public class Parser {
                 inputParameters.stream().filter((pmv) -> 
                         !(((Map<String, Object>) pmv).get("value") == null)).map((pmv) -> 
                             (ItemValue) new Gson().fromJson(new Gson().toJson(((Map<String, Object>) pmv).get("value")), ItemValue.class)).filter((iValue) -> 
-                                    (iValue != null)).map((iValue) -> 
-                                    {
+                                    (iValue != null)).map((iValue) -> {
                                         if (!StringUtils.isBlank(iValue.stringValue)) {
                                             stringValues.add(iValue.stringValue);
                                         }
@@ -616,13 +611,13 @@ public class Parser {
             for (String key : vars.keySet()) {
                 if (eR.startsWith(key + ".") || eR.equals(key)) {  
                     eR = eR.replace(key, vars.get(key)) + (eR.contains(".") ? "" : ".Id");
-                    System.out.println("eR: " + eR);
+                    //System.out.println("eR: " + eR);
                     res.add(eR);
                     break;
                 }
             }
         });
-        System.out.println("chatterStringValues:\nsetOfParsedStringValues: { ");
+        //System.out.println("chatterStringValues:\nsetOfParsedStringValues: { ");
         String startOfExpression = "[{]!";
         
         String swlanmtoubl1 = "[a-zA-Z]" + "((?!\\w*__\\w*)\\w*)*"; //do not allow 2 underscores in a row. 
@@ -635,7 +630,7 @@ public class Parser {
         String exprssionForObjectCasses = "((" + swlanmtoubl1 + caseForField1 +  ")|(" + caseForObject2 + caseForField2 + "))";
         String endOfExpression = "[}]";
         String stringValueRegex =  startOfExpression + exprssionForObjectCasses + endOfExpression;
-//        System.out.println("stringChatterValueRegex: " + stringValueRegex);
+//        //System.out.println("stringChatterValueRegex: " + stringValueRegex);
         Pattern p = Pattern.compile(stringValueRegex);
         Set<String> allMatches = new HashSet<>();
         stringValues.stream().map((sValue) -> p.matcher(sValue)).forEachOrdered((m) -> {
@@ -645,7 +640,7 @@ public class Parser {
         });
         
         allMatches.stream().map((m) -> m.replaceAll("[}{!]", "")).map((mKey) -> {
-            System.out.println("         s: " + mKey);
+            //System.out.println("         s: " + mKey);
             return mKey; 
         }).forEachOrdered((mKey) -> {
             String keyMatch = mKey;
@@ -665,12 +660,13 @@ public class Parser {
                     res.add(resultItem);
                 }
             }
-            System.out.println("resultItem: " + resultItem);
+            //System.out.println("resultItem: " + resultItem);
         });
-        System.out.println("}");
+        //System.out.println("}");
         return res;
     }
     
+    //Remove from expression all strings like: 'test', "test", and also remove all comments /* */ 
     public static String getStringWhichContainOblyField(String str) {
     
         int braceIndex = str.indexOf("'");
@@ -686,13 +682,13 @@ public class Parser {
         Set<IndexClass> sortedIndexes = new TreeSet<>();
         
         while (notBraceIndex >= 0) {
-//            System.out.println("notBraceIndex: " + notBraceIndex);
+//            //System.out.println("notBraceIndex: " + notBraceIndex);
             notBraceIndexes.add(notBraceIndex + 1);
             notBraceIndex = str.indexOf("\\'", notBraceIndex + 1);
         }
         
         while (notDoubleBraceIndex >= 0) {
-//            System.out.println("notDoubleBraceIndex: " + notDoubleBraceIndex);
+//            //System.out.println("notDoubleBraceIndex: " + notDoubleBraceIndex);
             notDoubleBraceIndexes.add(notDoubleBraceIndex + 1);
             notDoubleBraceIndex = str.indexOf("\\\"", notDoubleBraceIndex + 1);
         }
@@ -706,7 +702,7 @@ public class Parser {
             ic.setIndex(braceIndex);
             ic.setType("braceIndex");
             sortedIndexes.add(ic);
-//            System.out.println("braceIndex: " + braceIndex);
+//            //System.out.println("braceIndex: " + braceIndex);
             braceIndex = str.indexOf("'", braceIndex + 1);
         }
         
@@ -719,7 +715,7 @@ public class Parser {
             ic.setIndex(doubleBraceIndex);
             ic.setType("doubleBraceIndex");
             sortedIndexes.add(ic);
-//            System.out.println("doubleBraceIndex: " + doubleBraceIndex);
+//            //System.out.println("doubleBraceIndex: " + doubleBraceIndex);
             doubleBraceIndex = str.indexOf("\"", doubleBraceIndex + 1);
         }
                 
@@ -728,7 +724,7 @@ public class Parser {
             ic.setIndex(openCommentIndex);
             ic.setType("openCommentIndex");
             sortedIndexes.add(ic);
-//            System.out.println("openCommentIndex: " + openCommentIndex);
+//            //System.out.println("openCommentIndex: " + openCommentIndex);
             openCommentIndexes.add(openCommentIndex);
             openCommentIndex = str.indexOf("/*", openCommentIndex + 1);
         }
@@ -742,19 +738,19 @@ public class Parser {
             ic.setIndex(closeCommentIndex);
             ic.setType("closeCommentIndex");
             sortedIndexes.add(ic);
-//            System.out.println("closeCommentIndex: " + closeCommentIndex);
+//            //System.out.println("closeCommentIndex: " + closeCommentIndex);
             closeCommentIndex = str.indexOf("*/", closeCommentIndex + 1);
         }
         
         Set<IndexClass> indexesForDelete = new TreeSet<>(new IndexComparator());
 //        Set<IndexClass> indexesForDelete = new HashSet<>();
         boolean isStartIndexFound = false;
-        boolean needCheck = false;
+        boolean needCheck = true;
         String indexType = "";
         int firstIndex = -1;
         int lastIndex = -1;
         for (IndexClass ic : sortedIndexes) {
-//            System.out.println("ic: " + ic.index + ", type: " + ic.type);
+//            //System.out.println("ic: " + ic.index + ", type: " + ic.type);
             if (indexType == ic.getType()) {
                 lastIndex = ic.getIndex();
                 isStartIndexFound = false;
@@ -767,31 +763,31 @@ public class Parser {
                 firstIndex = -1;
                 lastIndex = -1;
                 isStartIndexFound = false;
-                needCheck = true;
+                needCheck = false;
             }
             
-            if (!isStartIndexFound && !needCheck) {
+            if (!isStartIndexFound && needCheck) {
                 firstIndex = ic.getIndex();
                 indexType = ic.getType() == "openCommentIndex" ? "closeCommentIndex" : ic.getType() ;
                 isStartIndexFound = true;
             }
-            needCheck = false;
+            needCheck = true;
 
         }
-        String strFirst = str;
+//        String strFirst = str;
         for (IndexClass ic : indexesForDelete) {
-//            System.out.println("index: " + ic.index + ", firstIndex: " + ic.firstIndex + ", lastIndex: " + ic.lastIndex + ", type: " + ic.type);
+//            //System.out.println("index: " + ic.index + ", firstIndex: " + ic.firstIndex + ", lastIndex: " + ic.lastIndex + ", type: " + ic.type);
             if (ic.getType() == "closeCommentIndex") {
-//                System.out.println("   token: " + str.substring(ic.firstIndex, ic.lastIndex+2));
+//                //System.out.println("   token: " + str.substring(ic.firstIndex, ic.lastIndex+2));
                 str = str.substring(0, ic.getFirstIndex()) + str.substring(ic.getLastIndex()+2);
             } else {
-//                System.out.println("   token: " + str.substring(ic.firstIndex, ic.lastIndex+1));
+//                //System.out.println("   token: " + str.substring(ic.firstIndex, ic.lastIndex+1));
                 str = str.substring(0, ic.getFirstIndex()) + str.substring(ic.getLastIndex()+1);
             }
         }
-        System.out.println("strFirst: " + strFirst);
+        //System.out.println("received field: " + strFirst);
         str = str.replaceAll("\\s", "");
-        System.out.println("     str: " + str);
+        //System.out.println("  result field: " + str);
         return str;
     
     }
