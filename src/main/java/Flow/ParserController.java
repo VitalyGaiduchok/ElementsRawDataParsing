@@ -1,19 +1,19 @@
 package Flow;
 
+import Flow.Parser.ResponseRawData;
 import com.google.gson.Gson;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.apache.commons.lang3.StringEscapeUtils;
 
 @WebServlet(
         name = "ParseController",
@@ -25,13 +25,13 @@ public class ParserController extends HttpServlet {
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         BufferedReader body = req.getReader();
         String bodyLines = "";
-        String bodyStr = "";
+        StringBuffer bodyStr = new StringBuffer();
         while ((bodyLines = body.readLine())!=null) {
-            bodyStr+=bodyLines;
+            bodyStr.append(bodyLines);
         }
-        System.out.println(bodyStr);
+        System.out.println(bodyStr.toString());
 
-        ResponseRawData rawD = new Gson().fromJson(bodyStr, ResponseRawData.class);
+        ResponseRawData rawD = new Gson().fromJson(bodyStr.toString(), ResponseRawData.class);
         if (rawD == null) {
             Map<String, String> respMap = new HashMap<String, String>();
             respMap.put("error", "Bad request body.");
@@ -39,35 +39,9 @@ public class ParserController extends HttpServlet {
             resp.setStatus(403);
             return; 
         }
-        resp.getWriter().append(new Gson().toJson(Parser.parse(bodyStr)));
+        resp.getWriter().append(new Gson().toJson(Parser.parse(bodyStr.toString())));
         resp.setStatus(200);
 
-    }
-    
-    public class ResponseRawData {
-        public ArrayList<RawData> rawData;
-    }
-
-    public class RawData {
-        public FlowMetadata Metadata;
-    }
-
-    public class FlowMetadata {
-        public ArrayList<Object> actionCalls;
-        public ArrayList<Object> assignments;
-        public ArrayList<Object> decisions;
-        public ArrayList<Object> formulas;
-        public ArrayList<Object> processMetadataValues;
-        public ArrayList<Object> recordCreates;
-        public ArrayList<Object> recordLookups;
-        public ArrayList<Object> recordUpdates;
-        public ArrayList<Variable> variables;
-    }
-
-    public class Variable {
-        public String name;
-        public String objectType;
-        public String dataType;
     }
     
 }
