@@ -37,7 +37,7 @@ public class Parser {
             //System.out.println("{\"rd\" : " + new Gson().toJson(rd.Metadata) + "}");
             result.addAll(getAllFieldsFromMD(rd.Metadata, vars));
         });
-        //System.out.println("{\"parseResult\" : " + new Gson().toJson(result) + "}");
+        System.out.println("{\"parseResult\" : " + new Gson().toJson(result) + "}");
         return new Gson().toJson(result); 
     }
         
