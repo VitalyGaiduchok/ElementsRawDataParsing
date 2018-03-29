@@ -34,10 +34,10 @@ public class Parser {
 //            vars.forEach((k,v)->{
 //                //System.out.println("\nkey: " + k + ", value: " + v);
 //            });
-
+            //System.out.println("{\"rd\" : " + new Gson().toJson(rd.Metadata) + "}");
             result.addAll(getAllFieldsFromMD(rd.Metadata, vars));
         });
-        System.out.println("{\"parseResult\" : " + new Gson().toJson(result) + "}");
+        //System.out.println("{\"parseResult\" : " + new Gson().toJson(result) + "}");
         return new Gson().toJson(result); 
     }
         
@@ -173,8 +173,9 @@ public class Parser {
         });
         for(String eR : elementReferences) {
             for (String key : vars.keySet()) {
-                if (eR.startsWith(key + ".") || eR.equals(key)) {  
-                    eR = eR.replace(key, vars.get(key));
+                if (eR.startsWith(key + ".") || eR.equals(key)) {
+                    eR = eR.replace(key, vars.get(key)) + (eR.contains(".") ? "" : ".Id");
+                    //System.out.println("eR: " + eR);
                     res.add(eR);
                     break;
                 }
