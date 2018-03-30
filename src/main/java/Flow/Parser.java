@@ -52,6 +52,7 @@ public class Parser {
         res.addAll(getRecordUpdatesFU(metadata, vars));
         res.addAll(getFlowFormulasFU(metadata, vars));
         res.addAll(getProcessMetadataValuesFromMDFU(metadata, vars));
+        res.addAll(getWaitsFU(metadata, vars));
         res.addAll(setOfParsedChatterStringValues(metadata, vars));
         //System.out.println("  this res:" + res.toString());
         //System.out.println("------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
@@ -566,6 +567,75 @@ public class Parser {
         return res;
     }
 
+    public static Set<String> getWaitsFU(FlowMetadata md, HashMap<String, String> vars) {
+        List<Object> waits = (List<Object>) md.waits;
+        Set<String> res = new HashSet<>();
+        if (waits.isEmpty()) { return res; }
+        
+        List<Object> waitEvents = new ArrayList<>();
+        waits.stream().map((obj) -> (Map<String, Object>) obj).map((item) -> (List<Object>) item.get("waitEvents")).filter((rules) -> !(rules == null)).forEachOrdered((rules) -> {
+            rules.forEach((rule) -> {
+                waitEvents.add(rule);
+            });
+        });
+        if (waitEvents.isEmpty()) { return res; }
+        
+        Set<String> elementReferences = new HashSet<>();
+        Set<String> stringValues = new HashSet<>();
+        for (Object waitEvent : waitEvents) {
+            
+            List<Object> conditions = (List<Object>) ((Map<String, Object>) waitEvent).get("conditions");
+            if (conditions != null) {
+                conditions.stream().map((condition) -> (Map<String, Object>) condition).map((conditionMap) -> {
+                    elementReferences.add(conditionMap.get("leftValueReference").toString());
+                    return conditionMap;
+                }).map((conditionMap) -> (ItemValue) new Gson().fromJson(new Gson().toJson(conditionMap.get("rightValue")), ItemValue.class)).filter((iValue) -> (iValue != null)).map((iValue) -> {
+                    if (!StringUtils.isBlank(iValue.stringValue)) {
+                        stringValues.add(iValue.stringValue);
+                    }
+                    return iValue;
+                }).filter((iValue) -> (!StringUtils.isBlank(iValue.elementReference))).forEachOrdered((iValue) -> {
+                    elementReferences.add(iValue.elementReference);
+                });
+            }
+            List<Object> inputParameters = (ArrayList<Object>) ((Map<String, Object>) waitEvent).get("inputParameters");
+            if (inputParameters != null) {
+                String objectName = "";
+                String objectField = "";
+                for (Object ip : inputParameters) {
+                    String ipName = (String) ((Map<String, Object>) ip).get("name");
+                    if (((Map<String, Object>) ip).get("value") != null) {
+                        ItemValue iValue = (ItemValue) new Gson().fromJson(new Gson().toJson(((Map<String, Object>) ip).get("value")), ItemValue.class);
+                        if (!StringUtils.isBlank(iValue.elementReference)) {
+                            elementReferences.add(iValue.elementReference);
+                        }
+                        if (ipName.equals("TimeTableColumnEnumOrId")) {
+                            objectName = iValue.stringValue;
+                        } 
+                        if (ipName.equals("TimeFieldColumnEnumOrId")) {
+                            objectField = iValue.stringValue;
+                        }
+                    }
+                }
+                if (!StringUtils.isBlank(objectName) && !StringUtils.isBlank(objectField)) {
+                    res.add(objectName + "." + objectField);
+                }
+            }
+        }
+            
+        elementReferences.forEach((eR) -> {
+            for (String key : vars.keySet()) {
+                if (eR.startsWith(key + ".") || eR.equals(key)) {
+                    eR = eR.replace(key, vars.get(key)) + (eR.contains(".") ? "" : ".Id");
+                    //System.out.println("eR: " + eR);
+                    res.add(eR);
+                    break;
+                }
+            }
+        });
+        //System.out.println("waits: ");
+        return setOfParsedStringValues(res, stringValues, vars);
+    }
     
     /**
      * Chatter String Values support only: expression like {!SObject.Name} where SObject is key in map(vars) and {![Account].Name}
@@ -835,6 +905,7 @@ public class Parser {
         public ArrayList<Object> recordCreates;
         public ArrayList<Object> recordLookups;
         public ArrayList<Object> recordUpdates;
+        public ArrayList<Object> waits;
         public ArrayList<Variable> variables;
     }
 
