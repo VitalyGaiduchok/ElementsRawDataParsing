@@ -621,6 +621,14 @@ public class Parser {
                     res.add(objectName + "." + objectField);
                 }
             }
+            
+            List<Object> outputParameters = (ArrayList<Object>) ((Map<String, Object>) waitEvent).get("outputParameters");
+            if (outputParameters != null) {
+                outputParameters.stream().map((op) -> (HashMap<String, Object>) new Gson().fromJson(new Gson().toJson(op), HashMap.class)).forEachOrdered((opMap) -> {
+                    elementReferences.add((String) opMap.get("assignToReference"));
+                });
+            }
+            
         }
             
         elementReferences.forEach((eR) -> {
