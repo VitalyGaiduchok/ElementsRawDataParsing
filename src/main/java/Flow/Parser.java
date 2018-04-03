@@ -33,6 +33,9 @@ public class Parser {
                 HashMap<String, String> vars = new HashMap<>();
                 rd.Metadata.variables.stream().filter((var) -> !(StringUtils.isBlank(var.objectType))).forEachOrdered((var) -> {
                     vars.put(var.name, var.objectType);
+                    if ("SObject".equals(var.dataType) && !StringUtils.isBlank(var.objectType)) {
+                        result.add(var.objectType + ".Id");
+                    }
                 });
 
 //            vars.forEach((k,v)->{
