@@ -43,6 +43,7 @@ public class Parser {
 //            });
                 getActionCallsFU(rd.Metadata, vars);
                 getAssignmentsFU(rd.Metadata, vars);
+                getChoicesFU(rd.Metadata, vars);
                 getDecisionsFU(rd.Metadata, vars);
                 getDynamicChoiceSetsFU(rd.Metadata, vars);
                 getRecordCreatesFU(rd.Metadata, vars);
@@ -232,10 +233,24 @@ public class Parser {
         Set<String> stringValues = new HashSet<>();
         
         dynamicChoiceSets.stream().map((dynamicChoiceSet) -> (HashMap<String, Object>) new Gson().fromJson(new Gson().toJson(dynamicChoiceSet), HashMap.class)).forEachOrdered((item) -> {
-            String objField = (String) item.get("picklistField");
-            String objName = (String) item.get("picklistObject");
-            if (!StringUtils.isBlank(objField) && !StringUtils.isBlank(objName)) {
-                result.add(objName + "." + objField); 
+            String picklistField = (String) item.get("picklistField");
+            String displayField = (String) item.get("displayField");
+            String sortField = (String) item.get("sortField");
+            String valueField = (String) item.get("valueField");
+            String objName = (String) (item.get("object") != null ? item.get("object") : item.get("picklistObject"));
+            if (!StringUtils.isBlank(objName)) {
+                if (!StringUtils.isBlank(picklistField)) {
+                    result.add(objName + "." + picklistField); 
+                }
+                if (!StringUtils.isBlank(displayField)) {
+                    result.add(objName + "." + displayField); 
+                } 
+                if (!StringUtils.isBlank(valueField)) {
+                    result.add(objName + "." + valueField); 
+                }
+                if (!StringUtils.isBlank(sortField)) {
+                    result.add(objName + "." + sortField); 
+                }
             }
             List<Object> filters = (List<Object> ) item.get("filters");
             String filterField;
@@ -259,10 +274,38 @@ public class Parser {
             if (outputAssignments != null) {
                 for (Object outputAssignment : outputAssignments) {
                     Map<String, Object> outputAssignmentMap = (Map<String, Object>) outputAssignment;
+                    if (!StringUtils.isBlank((String) outputAssignmentMap.get("assignToReference"))) {
+                        elementReferences.add((String) outputAssignmentMap.get("assignToReference"));
+                    }
                     filterField = objName + "." + outputAssignmentMap.get("field");
                     result.add(filterField);
                 }
             }
+        });
+        addElementReferencesToResultSet(elementReferences, vars);
+
+        //System.out.println("dynamicChoiceSets: ");
+        addSetOfParsedStringValuesToResultSet(stringValues, vars);
+    }
+    
+    public static void getChoicesFU(FlowMetadata md, HashMap<String, String> vars) {
+        List<Object> choices = md.choices;
+        if (choices.isEmpty()) { return; }
+        
+        Set<String> elementReferences = new HashSet<>();
+        Set<String> stringValues = new HashSet<>();
+        
+        choices.stream().map((dynamicChoiceSet) -> (HashMap<String, Object>) new Gson().fromJson(new Gson().toJson(dynamicChoiceSet), HashMap.class)).forEachOrdered((item) -> {
+            ItemValue iValue = (ItemValue) new Gson().fromJson(new Gson().toJson(item.get("value")), ItemValue.class);
+            if (iValue != null) {
+                if (!StringUtils.isBlank(iValue.stringValue)) {
+                    stringValues.add(iValue.stringValue);
+                }
+                if (!StringUtils.isBlank(iValue.elementReference)) {
+                    elementReferences.add(iValue.elementReference);
+                }
+            }
+
         });
         addElementReferencesToResultSet(elementReferences, vars);
 
@@ -517,7 +560,7 @@ public class Parser {
         Pattern p = Pattern.compile(stringValueRegex);
         Set<String> allMatches = new HashSet<>();
         
-        stringValues.stream().map((sValue) -> p.matcher(getStringWhichContainOblyField(sValue))).forEachOrdered((m) -> {
+        stringValues.stream().map((sValue) -> p.matcher(getStringWhichContainOnlyField(sValue))).forEachOrdered((m) -> {
             while(m.find()) {
                 allMatches.add(m.group());
             }
@@ -730,7 +773,7 @@ public class Parser {
     }
     
     //Remove from expression all strings like: 'test', "test", and also remove all comments /* */ 
-    public static String getStringWhichContainOblyField(String str) {
+    public static String getStringWhichContainOnlyField(String str) {
     
         int braceIndex = str.indexOf("'");
         int notBraceIndex = str.indexOf("\\'");
@@ -881,7 +924,7 @@ public class Parser {
         elementReferences.forEach((eR) -> {
             for (String key : vars.keySet()) {
                 if (eR.startsWith(key + ".") || eR.equals(key)) {  
-                    eR = eR.replace(key, vars.get(key)) + (eR.contains(".") ? "" : ".Id");
+                    eR = eR.replace(key, vars.get(key)).replaceAll("Owner:User", "OwnerId") + (eR.contains(".") ? "" : ".Id");
                     result.add(eR);
                 }
             }
@@ -920,6 +963,7 @@ public class Parser {
         public ArrayList<Object> actionCalls;
         public ArrayList<Object> assignments;
         public ArrayList<Object> decisions;
+        public ArrayList<Object> choices;
         public ArrayList<Object> dynamicChoiceSets;
         public ArrayList<Object> formulas;
         public ArrayList<Object> processMetadataValues;
