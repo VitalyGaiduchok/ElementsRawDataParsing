@@ -541,7 +541,7 @@ public class Parser {
                 }
             } else {
                 if (vars.containsKey(mKey)) {
-                    resultItem = mKey.replaceFirst(mKey, vars.get(mKey)) + ".Id";;
+                    resultItem = mKey.replaceFirst(mKey, vars.get(mKey)) + ".Id";
                     result.add(resultItem);
                 }
             }
@@ -853,19 +853,16 @@ public class Parser {
         boolean needCheck = true;
         String indexType = "";
         int firstIndex = -1;
-        int lastIndex = -1;
         for (IndexClass ic : sortedIndexes) {
 //            //System.out.println("ic: " + ic.index + ", type: " + ic.type);
             if (indexType == null ? ic.getType() == null : indexType.equals(ic.getType())) {
-                lastIndex = ic.getIndex();
                 IndexClass icDeleted = new IndexClass();
                 icDeleted.setFirstIndex(firstIndex);
-                icDeleted.setLastIndex(lastIndex);
+                icDeleted.setLastIndex(ic.getIndex());
                 icDeleted.setType(indexType);
                 indexesForDelete.add(icDeleted);
                 indexType = "";
                 firstIndex = -1;
-                lastIndex = -1;
                 isStartIndexFound = false;
                 needCheck = false;
             }
@@ -906,7 +903,7 @@ public class Parser {
         if (idx2 < 0) {
             return str;
         }
-        StringBuilder buffer = new StringBuilder(targetLength > replacement.length() ? str.length() : str.length() * 2);
+        StringBuffer buffer = new StringBuffer(targetLength > replacement.length() ? str.length() : str.length() * 2);
         int idx1 = 0;
         do {
             buffer.append(str, idx1, idx2);
